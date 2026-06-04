@@ -1,0 +1,109 @@
+# ============================================
+# .NET / C#
+# ============================================
+**/bin/
+**/obj/
+*.user
+*.suo
+*.pdb
+*.cache
+.vs/
+*.userprefs
+*.swp
+
+# ============================================
+# Configuration & Secrets (CRITICAL)
+# ============================================
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Local.json
+**/appsettings.*.json
+!**/appsettings.json
+!**/appsettings.Example.json
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+**/.env*
+
+# Secret files
+secrets.json
+**/secrets/
+*.pfx
+*.key
+*.pem
+*.crt
+*.p12
+
+# User secrets (dotnet user-secrets)
+**/UserSecrets/
+
+# ============================================
+# Node / Angular
+# ============================================
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# IDE / Editor
+# ============================================
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Docker
+# ============================================
+**/docker-compose.override.yml
+**/docker-compose.local.yml
+
+# ============================================
+# Database
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+postgres-data/
+pgdata/
+
+# ============================================
+# Logs & Temp
+# ============================================
+logs/
+*.log
+*.tmp
+*.temp
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Test Results
+# ============================================
+TestResults/
+*.trx
+*.coverage
+coverage.cobertura.xml
+
+# ============================================
+# OpenAI / API Keys
+# ============================================
+*.apikey
+*api-keys*
+*secret*
