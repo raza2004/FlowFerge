@@ -37,4 +37,11 @@ public class ProjectsController : ControllerBase
             req.Name, req.Key, req.Description, req.Color, req.Visibility));
         return result.ToActionResult();
     }
+
+    [HttpGet("{id:guid}/boards")]
+    public async Task<IActionResult> GetBoards(Guid id)
+    {
+        var result = await _mediator.Send(new GetProjectBoardsQuery(id));
+        return result.ToActionResult();
+    }
 }

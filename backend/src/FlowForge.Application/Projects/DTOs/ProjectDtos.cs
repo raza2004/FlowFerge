@@ -84,3 +84,34 @@ public record TaskDto(
     bool IsOverdue,
     DateTime CreatedAt
 );
+
+public record BoardDto(
+    Guid Id,
+    string Name,
+    string? Description,
+    string Type,
+    List<BoardListDto> Lists
+);
+
+public record BoardListDto(
+    Guid Id,
+    string Name,
+    string Color,
+    int Position,
+    int? WipLimit,
+    List<TaskCardDto> Tasks
+);
+
+public record TaskCardDto(
+    Guid Id,
+    string TaskNumber,
+    string Title,
+    string Type,
+    string Priority,
+    Guid? AssigneeId,
+    string? AssigneeName,
+    DateTime? DueDate,
+    bool IsOverdue,
+    int Position,
+    int CommentCount
+);

@@ -1,4 +1,5 @@
 using System.Text;
+using FlowForge.API.Hubs;
 using FlowForge.API.Middleware;
 using FlowForge.Application;
 using FlowForge.Infrastructure;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Swagger
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -81,6 +83,7 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<BoardHub>("/hubs/board");
 
 app.MapGet("/", () => "FlowForge API is running. See /swagger");
 
