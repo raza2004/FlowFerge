@@ -20,4 +20,11 @@ public class UsersController : ControllerBase
         var result = await _mediator.Send(new GetCurrentUserQuery());
         return result.ToActionResult();
     }
+
+    [HttpGet("members")]
+    public async Task<IActionResult> Members()
+    {
+        var result = await _mediator.Send(new GetTenantMembersQuery());
+        return result.ToActionResult();
+    }
 }

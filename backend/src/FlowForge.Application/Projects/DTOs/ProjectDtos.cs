@@ -115,3 +115,35 @@ public record TaskCardDto(
     int Position,
     int CommentCount
 );
+
+public record DashboardStatsDto(
+    int TotalProjects,
+    int ActiveProjects,
+    int MyOpenTasks,
+    int MyOverdueTasks,
+    int TasksDueThisWeek,
+    int CompletedThisWeek
+);
+
+public record MyTaskDto(
+    Guid Id,
+    string TaskNumber,
+    string Title,
+    string ProjectName,
+    string ProjectKey,
+    string ProjectColor,
+    string Type,
+    string Priority,
+    string Status,
+    DateTime? DueDate,
+    bool IsOverdue,
+    DateTime CreatedAt
+);
+
+public record ActivityItemDto(
+    string Type,
+    string Title,
+    string Subtitle,
+    DateTime At,
+    string? IconColor
+);

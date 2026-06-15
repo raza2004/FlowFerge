@@ -54,3 +54,12 @@ public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public record InviteUserRequest(string Email, string FirstName, string LastName, string Role);
 
 public record AcceptInvitationRequest(string Token, string Password);
+
+public record TenantMemberDto(
+    Guid UserId,
+    string FullName,
+    string Email,
+    string? AvatarUrl,
+    string Role,
+    DateTime JoinedAt
+);
