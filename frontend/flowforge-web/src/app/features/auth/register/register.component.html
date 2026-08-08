@@ -1,0 +1,158 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 mb-4">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+          <mat-icon class="text-white">bolt</mat-icon>
+        </div>
+        <span class="text-2xl font-bold text-gray-900">FlowForge</span>
+      </div>
+      <h1 class="text-2xl font-semibold text-gray-900">Create your account</h1>
+      <p class="text-gray-500 mt-1">Start managing projects today</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+
+      <!-- Error alert -->
+      @if (authError()) {
+        <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3 items-start">
+          <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+            <mat-icon class="!text-base text-red-600">error_outline</mat-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-red-800">{{ authError()!.message }}</p>
+            @if (authError()!.hint) {
+              <p class="text-sm text-red-600 mt-0.5">{{ authError()!.hint }}</p>
+            }
+            @if (authError()!.field === 'email') {
+              <a routerLink="/auth/login"
+                 class="inline-block mt-2 text-sm font-medium text-indigo-600 hover:underline">
+                Sign in to existing account →
+              </a>
+            }
+          </div>
+          <button (click)="dismissError()"
+                  class="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors">
+            <mat-icon class="!text-base">close</mat-icon>
+          </button>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+        <!-- Workspace name -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Workspace name</mat-label>
+          <mat-icon matPrefix class="mr-2 text-gray-400">business</mat-icon>
+          <input matInput formControlName="tenantName"
+                 placeholder="e.g. Acme Corp" (input)="dismissError()">
+          <mat-hint>Your team or company name</mat-hint>
+          @if (form.controls.tenantName.touched && form.controls.tenantName.hasError('required')) {
+            <mat-error>Workspace name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Name row -->
+        <div class="grid grid-cols-2 gap-3">
+          <mat-form-field appearance="outline">
+            <mat-label>First name</mat-label>
+            <input matInput formControlName="firstName" (input)="dismissError()">
+            @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Last name</mat-label>
+            <input matInput formControlName="lastName" (input)="dismissError()">
+            @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email"
+                 autocomplete="email" (input)="dismissError()">
+          @if (authError()?.field === 'email') {
+            <mat-icon matSuffix class="text-red-500">mail_off</mat-icon>
+          }
+          @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+            <mat-error>Enter a valid email address</mat-error>
+          }
+          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+            <mat-error>Email is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Password -->
+        <div>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Password</mat-label>
+            <input matInput [type]="showPassword ? 'text' : 'password'"
+                   formControlName="password"
+                   autocomplete="new-password"
+                   (input)="dismissError()">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="showPassword = !showPassword">
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <!-- Live password requirements checklist -->
+          @if (showChecklist) {
+            <div class="mt-2 px-1 space-y-1.5">
+              <p class="text-xs font-medium text-gray-500 mb-1">Password must have:</p>
+              <div class="flex items-center gap-2 text-xs"
+                   [class.text-green-600]="rules.minLength"
+                   [class.text-gray-400]="!rules.minLength">
+                <mat-icon class="!text-sm !w-4 !h-4">
+                  {{ rules.minLength ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                At least 8 characters
+              </div>
+              <div class="flex items-center gap-2 text-xs"
+                   [class.text-green-600]="rules.uppercase"
+                   [class.text-gray-400]="!rules.uppercase">
+                <mat-icon class="!text-sm !w-4 !h-4">
+                  {{ rules.uppercase ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                One uppercase letter (A–Z)
+              </div>
+              <div class="flex items-center gap-2 text-xs"
+                   [class.text-green-600]="rules.lowercase"
+                   [class.text-gray-400]="!rules.lowercase">
+                <mat-icon class="!text-sm !w-4 !h-4">
+                  {{ rules.lowercase ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                One lowercase letter (a–z)
+              </div>
+              <div class="flex items-center gap-2 text-xs"
+                   [class.text-green-600]="rules.number"
+                   [class.text-gray-400]="!rules.number">
+                <mat-icon class="!text-sm !w-4 !h-4">
+                  {{ rules.number ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                One number (0–9)
+              </div>
+            </div>
+          }
+        </div>
+
+        <button mat-raised-button color="primary" class="w-full !py-3 !text-base"
+                type="submit" [disabled]="form.invalid || isLoading">
+          @if (isLoading) { <mat-icon class="animate-spin">refresh</mat-icon> }
+          {{ isLoading ? 'Creating account…' : 'Create account' }}
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Already have an account?
+        <a routerLink="/auth/login" class="text-indigo-600 hover:underline font-medium">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>

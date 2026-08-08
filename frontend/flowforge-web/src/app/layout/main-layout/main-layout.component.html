@@ -1,0 +1,104 @@
+<div class="flex h-screen bg-[#FAFAF9]">
+  <!-- Sidebar -->
+  <aside class="w-60 bg-[#18181B] text-zinc-300 flex flex-col">
+
+    <!-- Workspace header -->
+    <div class="px-4 py-4 border-b border-zinc-800">
+      <button mat-button [matMenuTriggerFor]="workspaceMenu"
+              class="!w-full !justify-start !text-left !px-2 !py-2 !text-white hover:!bg-zinc-800">
+        <div class="flex items-center gap-2.5 w-full">
+          <div class="w-8 h-8 rounded-md bg-forge-500 flex items-center justify-center text-zinc-900 font-bold text-sm font-display">
+            {{ workspaceInitial }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-white truncate">
+              {{ auth.tenant()?.name }}
+            </div>
+            <div class="text-[11px] text-zinc-500 truncate">{{ auth.tenant()?.planTier }} plan</div>
+          </div>
+          <mat-icon class="!text-base !text-zinc-500">unfold_more</mat-icon>
+        </div>
+      </button>
+      <mat-menu #workspaceMenu="matMenu">
+        <button mat-menu-item disabled>
+          <mat-icon>add</mat-icon>
+          <span>New workspace</span>
+        </button>
+      </mat-menu>
+    </div>
+
+    <!-- Search -->
+    <div class="px-3 py-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/60 rounded-md text-xs text-zinc-400 cursor-pointer hover:bg-zinc-800">
+        <mat-icon class="!text-base !w-4 !h-4">search</mat-icon>
+        <span>Search</span>
+        <kbd class="ml-auto text-[10px] text-zinc-500 font-mono">⌘K</kbd>
+      </div>
+    </div>
+
+    <!-- Primary nav -->
+    <nav class="px-2 mt-1">
+      @for (item of primaryNav; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="!bg-zinc-800 !text-white"
+           class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors">
+          <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
+          <span class="flex-1">{{ item.label }}</span>
+          @if (item.badge && item.badge > 0) {
+            <span class="text-[10px] bg-forge-500 text-zinc-900 px-1.5 rounded font-semibold">
+              {{ item.badge }}
+            </span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Workspace section -->
+    <div class="mt-6 px-2">
+      <div class="px-3 mb-1 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">
+        Workspace
+      </div>
+      <nav>
+        @for (item of workspaceNav; track item.path) {
+          <a [routerLink]="item.path" routerLinkActive="!bg-zinc-800 !text-white"
+             class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors">
+            <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- User menu at bottom -->
+    <div class="p-3 border-t border-zinc-800">
+      <button mat-button [matMenuTriggerFor]="userMenu"
+              class="!w-full !justify-start !text-left !px-2 !py-2 hover:!bg-zinc-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-zinc-900 font-bold text-xs">
+            {{ initials }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm text-white truncate">{{ auth.user()?.fullName }}</div>
+            <div class="text-[11px] text-zinc-500 truncate">{{ auth.user()?.email }}</div>
+          </div>
+        </div>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item routerLink="/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </main>
+</div>

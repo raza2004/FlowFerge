@@ -1,0 +1,56 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
+      <p class="text-gray-500 text-sm mt-1">All your workspaces in one place</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon> New project
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-gray-500">Loading...</div>
+  } @else if (projects().length === 0) {
+    <div class="text-center py-20">
+      <mat-icon class="!text-6xl !w-16 !h-16 text-gray-300">folder_open</mat-icon>
+      <h3 class="text-lg font-semibold text-gray-700 mt-4">No projects yet</h3>
+      <p class="text-gray-400 mb-6">Create your first project to get started.</p>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon> Create project
+      </button>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (project of projects(); track project.id) {
+        <a [routerLink]="['/projects', project.id]"
+           class="block bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                 [style.background]="project.color">
+              {{ project.key.substring(0, 2) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-gray-900 truncate">{{ project.name }}</div>
+              <div class="text-xs text-gray-400 font-mono">{{ project.key }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-400">
+            <span class="flex items-center gap-1">
+              <mat-icon class="!text-sm !w-4 !h-4">task_alt</mat-icon>
+              {{ project.openTasks }} open
+            </span>
+            <span class="flex items-center gap-1">
+              <mat-icon class="!text-sm !w-4 !h-4">check_circle</mat-icon>
+              {{ project.completedTasks }} done
+            </span>
+            <span class="ml-auto px-2 py-0.5 rounded-full text-xs"
+                  [class]="project.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'">
+              {{ project.status }}
+            </span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

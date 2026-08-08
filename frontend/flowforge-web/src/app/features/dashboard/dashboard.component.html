@@ -1,0 +1,102 @@
+<div class="p-8 max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold font-display text-zinc-900">Dashboard</h1>
+    <p class="text-sm text-zinc-500 mt-1">Here's what's happening across your workspace.</p>
+  </div>
+
+  <!-- Stats grid -->
+  @if (stats()) {
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white border border-zinc-200 rounded-xl p-5">
+        <div class="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-1">Total Projects</div>
+        <div class="text-3xl font-bold text-zinc-900">{{ stats()!.totalProjects }}</div>
+        <div class="text-xs text-zinc-400 mt-1">{{ stats()!.activeProjects }} active</div>
+      </div>
+      <div class="bg-white border border-zinc-200 rounded-xl p-5">
+        <div class="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-1">My Open Tasks</div>
+        <div class="text-3xl font-bold text-zinc-900">{{ stats()!.myOpenTasks }}</div>
+        <div class="text-xs text-red-500 mt-1">{{ stats()!.myOverdueTasks }} overdue</div>
+      </div>
+      <div class="bg-white border border-zinc-200 rounded-xl p-5">
+        <div class="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-1">Due This Week</div>
+        <div class="text-3xl font-bold text-zinc-900">{{ stats()!.tasksDueThisWeek }}</div>
+        <div class="text-xs text-green-600 mt-1">{{ stats()!.completedThisWeek }} completed</div>
+      </div>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- My tasks -->
+    <div class="lg:col-span-2 bg-white border border-zinc-200 rounded-xl">
+      <div class="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <h2 class="font-semibold text-zinc-900">My Tasks</h2>
+        <a routerLink="/my-work" class="text-xs text-forge-600 hover:underline">View all</a>
+      </div>
+      @if (tasks().length === 0) {
+        <div class="p-8 text-center text-zinc-400 text-sm">
+          <mat-icon class="!text-4xl !w-10 !h-10 mb-2">check_circle</mat-icon>
+          <p>You're all caught up!</p>
+        </div>
+      } @else {
+        <ul class="divide-y divide-zinc-100">
+          @for (task of tasks().slice(0, 8); track task.id) {
+            <li class="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors">
+              <mat-icon class="!text-base !w-5 !h-5 flex-shrink-0" [class]="priorityColor(task.priority)">
+                {{ priorityIcon(task.priority) }}
+              </mat-icon>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm text-zinc-800 truncate">{{ task.title }}</div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="w-2 h-2 rounded-sm flex-shrink-0" [style.background]="task.projectColor"></span>
+                  <span class="text-xs text-zinc-400">{{ task.projectKey }}-{{ task.taskNumber }}</span>
+                  <span class="text-xs text-zinc-400">·</span>
+                  <span class="text-xs text-zinc-400">{{ task.status }}</span>
+                </div>
+              </div>
+              @if (task.dueDate) {
+                <span class="text-xs flex-shrink-0" [class]="task.isOverdue ? 'text-red-500' : 'text-zinc-400'">
+                  {{ task.dueDate | date:'MMM d' }}
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Projects sidebar -->
+    <div class="bg-white border border-zinc-200 rounded-xl">
+      <div class="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <h2 class="font-semibold text-zinc-900">Projects</h2>
+        <a routerLink="/projects" class="text-xs text-forge-600 hover:underline">All projects</a>
+      </div>
+      @if (loading()) {
+        <div class="p-6 text-center text-zinc-400 text-sm">Loading...</div>
+      } @else if (projects().length === 0) {
+        <div class="p-6 text-center text-zinc-400 text-sm">No projects yet.</div>
+      } @else {
+        <ul class="divide-y divide-zinc-100">
+          @for (p of projects().slice(0, 6); track p.id) {
+            <li>
+              <a [routerLink]="['/projects', p.id]"
+                 class="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors">
+                <div class="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                     [style.background]="p.color">
+                  {{ p.key.substring(0, 2) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-zinc-800 truncate">{{ p.name }}</div>
+                  <div class="text-xs text-zinc-400">{{ p.openTasks }} open · {{ p.completedTasks }} done</div>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+  </div>
+</div>
