@@ -32,10 +32,18 @@ export class DashboardComponent implements OnInit {
   }
 
   priorityColor(priority: string): string {
-    return { Urgent: 'text-red-500', High: 'text-orange-500', Medium: 'text-yellow-500', Low: 'text-blue-400' }[priority] ?? 'text-gray-400';
+    return {
+      Critical: 'text-red-500', Highest: 'text-red-500',
+      High: 'text-orange-500', Medium: 'text-yellow-500',
+      Low: 'text-blue-400', Lowest: 'text-blue-400'
+    }[priority] ?? 'text-gray-400';
   }
 
   priorityIcon(priority: string): string {
-    return { Urgent: 'crisis_alert', High: 'arrow_upward', Medium: 'remove', Low: 'arrow_downward' }[priority] ?? 'remove';
+    return {
+      Critical: 'crisis_alert', Highest: 'crisis_alert',
+      High: 'arrow_upward', Medium: 'remove',
+      Low: 'arrow_downward', Lowest: 'arrow_downward'
+    }[priority] ?? 'remove';
   }
 }

@@ -65,6 +65,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = "sub"
         };
+
+        // SignalR sends the JWT via ?access_token= on WebSocket/SSE transports
+        // because browsers can't set an Authorization header on those connections.
+        opts.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var accessToken = ctx.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    ctx.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 

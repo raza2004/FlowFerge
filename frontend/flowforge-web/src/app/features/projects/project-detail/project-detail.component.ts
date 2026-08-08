@@ -164,12 +164,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         description: result.description,
         type: result.type,
         priority: result.priority
-      }).subscribe(task => {
-        const updatedBoard = { ...board };
-        const targetList = updatedBoard.lists.find(l => l.id === list.id);
-        if (targetList) targetList.tasks.push(task);
-        this.board.set(updatedBoard);
-      });
+      }).subscribe(task => this.addTaskToList(task, list.id));
     });
   }
 
@@ -193,12 +188,19 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   }
 
   private applyRemoteCreate(task: TaskCardDto) {
+    this.addTaskToList(task, this.board()?.lists[0]?.id);
+  }
+
+  /** Both the creator's own REST response and the SignalR broadcast it triggers
+   *  can deliver the same task, so every insertion path is deduped by task id. */
+  private addTaskToList(task: TaskCardDto, listId: string | undefined) {
     const board = this.board();
-    if (!board) return;
+    if (!board || !listId) return;
     if (board.lists.some(l => l.tasks.some(t => t.id === task.id))) return;
-    const list = board.lists[0];
-    if (list) {
-      list.tasks.push(task);
+
+    const targetList = board.lists.find(l => l.id === listId);
+    if (targetList) {
+      targetList.tasks.push(task);
       this.board.set({ ...board });
     }
   }

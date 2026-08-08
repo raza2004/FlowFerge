@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService } from '../../shared/services/dashboard.service';
 import { MyTaskDto } from '../../shared/models/project.models';
@@ -8,7 +7,7 @@ import { MyTaskDto } from '../../shared/models/project.models';
 @Component({
   selector: 'app-my-work',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, DatePipe],
+  imports: [CommonModule, MatIconModule, DatePipe],
   template: `
     <div class="max-w-5xl mx-auto px-8 py-10">
       <div class="mb-8">
