@@ -133,21 +133,23 @@ public sealed class ProjectTask : SoftDeletableEntity
         return Result.Success();
     }
 
-    public Result ChangeStatus(string newStatus, Guid changedById, Guid tenantId)
+    /// <summary>
+    /// Changes the task's status label. <paramref name="isDoneState"/> is driven by the
+    /// destination BoardList's IsDoneColumn flag (set by the caller), not by string-matching
+    /// the status name, since lists can be renamed or custom per project.
+    /// </summary>
+    public Result ChangeStatus(string newStatus, bool isDoneState, Guid changedById, Guid tenantId)
     {
         if (string.IsNullOrWhiteSpace(newStatus))
             return Result.Failure(Error.Validation("Task.InvalidStatus", "Status required"));
 
         var oldStatus = Status;
         Status = newStatus;
-
-        if (newStatus.Equals("Done", StringComparison.OrdinalIgnoreCase) || newStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
-            CompletedAt = DateTime.UtcNow;
-        else
-            CompletedAt = null;
+        CompletedAt = isDoneState ? (CompletedAt ?? DateTime.UtcNow) : null;
 
         Touch();
-        RaiseDomainEvent(new TaskStatusChangedEvent(Id, oldStatus, newStatus, changedById, tenantId));
+        if (oldStatus != newStatus)
+            RaiseDomainEvent(new TaskStatusChangedEvent(Id, oldStatus, newStatus, changedById, tenantId));
         return Result.Success();
     }
 

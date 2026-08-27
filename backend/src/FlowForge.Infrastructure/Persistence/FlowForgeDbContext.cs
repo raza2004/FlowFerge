@@ -2,7 +2,9 @@ using System.Reflection;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Auditing;
 using FlowForge.Domain.Identity;
+using FlowForge.Domain.Notifications;
 using FlowForge.Domain.Projects;
+using FlowForge.Domain.Workflows;
 using FlowForge.Shared.Primitives;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +44,12 @@ public class FlowForgeDbContext : DbContext
     public DbSet<Label> Labels => Set<Label>();
     public DbSet<Sprint> Sprints => Set<Sprint>();
 
+    // Workflows
+    public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();
+
+    // Notifications
+    public DbSet<Notification> Notifications => Set<Notification>();
+
     // Auditing
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
@@ -59,10 +67,18 @@ public class FlowForgeDbContext : DbContext
             entry.Entity.Touch();
 
         // Collect domain events before saving
-        var domainEvents = ChangeTracker.Entries<Entity>()
+        var entitiesWithEvents = ChangeTracker.Entries<Entity>()
             .Where(e => e.Entity.DomainEvents.Any())
-            .SelectMany(e => e.Entity.DomainEvents)
+            .Select(e => e.Entity)
             .ToList();
+        var domainEvents = entitiesWithEvents.SelectMany(e => e.DomainEvents).ToList();
+
+        // Clear events from the entities now, before publishing. A handler may itself call
+        // SaveChangesAsync again (e.g. to persist a notification it creates in response) -
+        // if we cleared after publishing instead, that nested call would still see these
+        // same events on the change tracker and re-publish them, recursing forever.
+        foreach (var entity in entitiesWithEvents)
+            entity.ClearDomainEvents();
 
         var result = await base.SaveChangesAsync(ct);
 
@@ -72,10 +88,6 @@ public class FlowForgeDbContext : DbContext
             foreach (var domainEvent in domainEvents)
                 await _publisher.Publish(domainEvent, ct);
         }
-
-        // Clear events
-        foreach (var entry in ChangeTracker.Entries<Entity>())
-            entry.Entity.ClearDomainEvents();
 
         return result;
     }

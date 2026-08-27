@@ -1,7 +1,9 @@
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Identity.Repositories;
+using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
+using FlowForge.Domain.Workflows.Repositories;
 using FlowForge.Infrastructure.Persistence;
 using FlowForge.Infrastructure.Persistence.Repositories;
 using FlowForge.Infrastructure.Services.Auth;
@@ -32,6 +34,10 @@ public static class DependencyInjection
         services.AddScoped<ISprintRepository, SprintRepository>();
         services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
         services.AddScoped<ILabelRepository, LabelRepository>();
+
+        // Repositories (Workflows / Notifications)
+        services.AddScoped<IAutomationRuleRepository, AutomationRuleRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();

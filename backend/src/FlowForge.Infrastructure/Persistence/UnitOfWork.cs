@@ -1,6 +1,8 @@
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Identity.Repositories;
+using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
+using FlowForge.Domain.Workflows.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FlowForge.Infrastructure.Persistence;
@@ -21,7 +23,9 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         ITaskRepository tasks,
         ISprintRepository sprints,
         ITaskCommentRepository taskComments,
-        ILabelRepository labels)
+        ILabelRepository labels,
+        IAutomationRuleRepository automationRules,
+        INotificationRepository notifications)
     {
         _ctx = ctx;
         Tenants = tenants;
@@ -34,6 +38,8 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         Sprints = sprints;
         TaskComments = taskComments;
         Labels = labels;
+        AutomationRules = automationRules;
+        Notifications = notifications;
     }
 
     public ITenantRepository Tenants { get; }
@@ -46,6 +52,8 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     public ISprintRepository Sprints { get; }
     public ITaskCommentRepository TaskComments { get; }
     public ILabelRepository Labels { get; }
+    public IAutomationRuleRepository AutomationRules { get; }
+    public INotificationRepository Notifications { get; }
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default) => _ctx.SaveChangesAsync(ct);
 

@@ -75,7 +75,11 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 
             if (todoList.IsSuccess) board.AddList(todoList.Value);
             if (inProgressList.IsSuccess) board.AddList(inProgressList.Value);
-            if (doneList.IsSuccess) board.AddList(doneList.Value);
+            if (doneList.IsSuccess)
+            {
+                doneList.Value.UpdateDetails("Done", "#10b981", null, isDoneColumn: true);
+                board.AddList(doneList.Value);
+            }
 
             await _uow.Boards.AddAsync(board, ct);
         }

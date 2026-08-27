@@ -31,9 +31,21 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, Result>
         if (task == null || task.TenantId != _currentUser.TenantId.Value)
             return Result.Failure(Error.NotFound("Task.NotFound", "Task not found"));
 
+        var board = await _uow.Boards.GetByIdWithListsAsync(task.BoardId, ct);
+        var targetList = board?.Lists.FirstOrDefault(l => l.Id == request.NewListId);
+        if (targetList == null)
+            return Result.Failure(Error.NotFound("BoardList.NotFound", "Target list not found"));
+
         var moveResult = task.MoveTo(request.NewListId, request.NewPosition,
             _currentUser.UserId.Value, _currentUser.TenantId.Value);
         if (moveResult.IsFailure) return moveResult;
+
+        // Keep the free-text Status (and CompletedAt / dashboard stats) in sync with
+        // whichever list the task now sits in, driven by the list's IsDoneColumn flag
+        // rather than string-matching the list name.
+        var statusResult = task.ChangeStatus(targetList.Name, targetList.IsDoneColumn,
+            _currentUser.UserId.Value, _currentUser.TenantId.Value);
+        if (statusResult.IsFailure) return statusResult;
 
         _uow.Tasks.Update(task);
         await _uow.SaveChangesAsync(ct);

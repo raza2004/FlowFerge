@@ -6,11 +6,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialogRef } from '@angular/material/dialog';
 import {
   CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem
@@ -18,8 +19,12 @@ import {
 import { ProjectsService } from '../../../shared/services/projects.service';
 import { BoardsService } from '../../../shared/services/boards.service';
 import { TasksService } from '../../../shared/services/tasks.service';
+import { AutomationsService } from '../../../shared/services/automations.service';
+import { DashboardService } from '../../../shared/services/dashboard.service';
 import { SignalrService } from '../../../core/services/signalr.service';
 import { ProjectDto, BoardDto, BoardListDto, TaskCardDto } from '../../../shared/models/project.models';
+import { AutomationRuleDto, AutomationActionType, AutomationTriggerType } from '../../../shared/models/automation.models';
+import { TenantMemberDto } from '../../../shared/models/auth.models';
 
 @Component({
   selector: 'app-create-task-dialog',
@@ -82,13 +87,87 @@ export class CreateTaskDialogComponent {
   create() { this.ref.close(this.form.value); }
 }
 
+export interface AutomationDialogData {
+  lists: BoardListDto[];
+  members: TenantMemberDto[];
+}
+
+@Component({
+  selector: 'app-create-automation-dialog',
+  standalone: true,
+  imports: [
+    CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule,
+    MatFormFieldModule, MatInputModule, MatSelectModule
+  ],
+  template: `
+    <h2 mat-dialog-title>New automation</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" class="space-y-3 pt-2">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Rule name</mat-label>
+          <input matInput formControlName="name" placeholder="e.g. Notify on Done">
+        </mat-form-field>
+
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <span>When a task is moved to</span>
+        </div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>List</mat-label>
+          <mat-select formControlName="triggerListId">
+            @for (list of data.lists; track list.id) {
+              <mat-option [value]="list.id">{{ list.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <span>then</span>
+        </div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Action</mat-label>
+          <mat-select formControlName="actionType">
+            <mat-option [value]="0">Notify</mat-option>
+            <mat-option [value]="1">Assign to</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Member</mat-label>
+          <mat-select formControlName="actionUserId">
+            @for (m of data.members; track m.userId) {
+              <mat-option [value]="m.userId">{{ m.fullName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="ref.close()">Cancel</button>
+      <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="create()">Create</button>
+    </mat-dialog-actions>
+  `
+})
+export class CreateAutomationDialogComponent {
+  private fb = inject(FormBuilder);
+  ref = inject(MatDialogRef<CreateAutomationDialogComponent>);
+  data = inject<AutomationDialogData>(MAT_DIALOG_DATA);
+
+  form = this.fb.group({
+    name: ['', Validators.required],
+    triggerListId: ['', Validators.required],
+    actionType: [0, Validators.required],
+    actionUserId: ['', Validators.required]
+  });
+
+  create() { this.ref.close(this.form.value); }
+}
+
 @Component({
   selector: 'app-project-detail',
   standalone: true,
   imports: [
     CommonModule, RouterLink, DragDropModule,
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
-    MatMenuModule, MatDialogModule
+    MatMenuModule, MatDialogModule, MatSlideToggleModule
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss'
@@ -98,12 +177,17 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private projectsService = inject(ProjectsService);
   private boardsService = inject(BoardsService);
   private tasksService = inject(TasksService);
+  private automationsService = inject(AutomationsService);
+  private dashboardService = inject(DashboardService);
   private signalr = inject(SignalrService);
   private dialog = inject(MatDialog);
 
   project = signal<ProjectDto | null>(null);
   board = signal<BoardDto | null>(null);
   isLoading = signal(true);
+
+  automations = signal<AutomationRuleDto[]>([]);
+  members = signal<TenantMemberDto[]>([]);
 
   get listConnectedTo(): string[] {
     return this.board()?.lists.map(l => `list-${l.id}`) ?? [];
@@ -114,6 +198,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     if (!id) return;
 
     this.projectsService.getById(id).subscribe(p => this.project.set(p));
+    this.automationsService.getForProject(id).subscribe(rules => this.automations.set(rules));
+    this.dashboardService.getTeamMembers().subscribe(members => this.members.set(members));
 
     this.boardsService.getProjectBoards(id).subscribe(async boards => {
       if (boards.length > 0) {
@@ -166,6 +252,47 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         priority: result.priority
       }).subscribe(task => this.addTaskToList(task, list.id));
     });
+  }
+
+  openAutomationDialog() {
+    const board = this.board();
+    const project = this.project();
+    if (!board || !project) return;
+
+    const ref = this.dialog.open(CreateAutomationDialogComponent, {
+      width: '480px',
+      data: { lists: board.lists, members: this.members() } as AutomationDialogData
+    });
+    ref.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.automationsService.create(project.id, {
+        name: result.name,
+        triggerType: AutomationTriggerType.TaskMovedToList,
+        triggerListId: result.triggerListId,
+        actionType: result.actionType,
+        actionUserId: result.actionUserId
+      }).subscribe(rule => this.automations.update(list => [rule, ...list]));
+    });
+  }
+
+  toggleAutomation(rule: AutomationRuleDto) {
+    const enabled = !rule.isEnabled;
+    this.automationsService.toggle(rule.id, enabled).subscribe(() => {
+      this.automations.update(list =>
+        list.map(r => r.id === rule.id ? { ...r, isEnabled: enabled } : r));
+    });
+  }
+
+  deleteAutomation(rule: AutomationRuleDto) {
+    this.automationsService.delete(rule.id).subscribe(() => {
+      this.automations.update(list => list.filter(r => r.id !== rule.id));
+    });
+  }
+
+  actionLabel(rule: AutomationRuleDto): string {
+    return rule.actionType === AutomationActionType.AssignUser
+      ? `Assign to ${rule.actionUserName}`
+      : `Notify ${rule.actionUserName}`;
   }
 
   private applyRemoteMove(event: any) {

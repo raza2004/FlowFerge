@@ -82,5 +82,42 @@
         <p class="text-gray-500">This project doesn't have any boards.</p>
       </mat-card>
     }
+
+    @if (board()) {
+      <div class="mt-6 bg-white border border-gray-200 rounded-lg">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+          <div>
+            <h2 class="font-semibold text-gray-900 text-sm">Automations</h2>
+            <p class="text-xs text-gray-500">When a task moves to a list, automatically notify or assign someone</p>
+          </div>
+          <button mat-stroked-button (click)="openAutomationDialog()">
+            <mat-icon class="!text-base">add</mat-icon> New rule
+          </button>
+        </div>
+
+        @if (automations().length === 0) {
+          <p class="px-4 py-4 text-sm text-gray-400">No automation rules yet.</p>
+        } @else {
+          <div class="divide-y divide-gray-100">
+            @for (rule of automations(); track rule.id) {
+              <div class="px-4 py-3 flex items-center gap-3">
+                <mat-icon class="!text-base text-gray-400">bolt</mat-icon>
+                <div class="flex-1 min-w-0 text-sm">
+                  <span class="font-medium text-gray-900">{{ rule.name }}</span>
+                  <span class="text-gray-500"> — when moved to </span>
+                  <span class="font-medium text-gray-700">{{ rule.triggerListName }}</span>
+                  <span class="text-gray-500">, </span>
+                  <span class="text-gray-700">{{ actionLabel(rule) }}</span>
+                </div>
+                <mat-slide-toggle [checked]="rule.isEnabled" (change)="toggleAutomation(rule)"></mat-slide-toggle>
+                <button mat-icon-button (click)="deleteAutomation(rule)" matTooltip="Delete rule">
+                  <mat-icon class="!text-base text-gray-400">delete_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
   }
 </div>

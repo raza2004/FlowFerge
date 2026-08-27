@@ -1,5 +1,7 @@
 using FlowForge.Domain.Identity.Repositories;
+using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
+using FlowForge.Domain.Workflows.Repositories;
 
 namespace FlowForge.Domain.Common;
 
@@ -18,6 +20,12 @@ public interface IUnitOfWork
     ISprintRepository Sprints { get; }
     ITaskCommentRepository TaskComments { get; }
     ILabelRepository Labels { get; }
+
+    // Workflows context
+    IAutomationRuleRepository AutomationRules { get; }
+
+    // Notifications
+    INotificationRepository Notifications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

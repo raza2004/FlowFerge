@@ -43,9 +43,9 @@
            class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors">
           <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
           <span class="flex-1">{{ item.label }}</span>
-          @if (item.badge && item.badge > 0) {
+          @if (item.path === '/inbox' && notifications.unreadCount() > 0) {
             <span class="text-[10px] bg-forge-500 text-zinc-900 px-1.5 rounded font-semibold">
-              {{ item.badge }}
+              {{ notifications.unreadCount() }}
             </span>
           }
         </a>

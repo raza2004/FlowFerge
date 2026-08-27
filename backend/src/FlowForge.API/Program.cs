@@ -1,7 +1,9 @@
 using System.Text;
 using FlowForge.API.Hubs;
 using FlowForge.API.Middleware;
+using FlowForge.API.Realtime;
 using FlowForge.Application;
+using FlowForge.Application.Common.Abstractions;
 using FlowForge.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -39,6 +41,7 @@ builder.Services.AddSwaggerGen(c =>
 // Our layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
 // CORS for Angular
 builder.Services.AddCors(opts =>
@@ -100,6 +103,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.MapGet("/", () => "FlowForge API is running. See /swagger");
 
