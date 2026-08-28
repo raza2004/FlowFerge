@@ -26,9 +26,18 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, Result<
 
         var projects = await _uow.Projects.GetByTenantAsync(_currentUser.TenantId.Value, request.IncludeArchived, ct);
 
-        var result = projects.Select(p => new ProjectSummaryDto(
-            p.Id, p.Name, p.Key.Value, p.Color, p.Status.ToString(), 0, 0
-        )).ToList();
+        var result = new List<ProjectSummaryDto>();
+        foreach (var p in projects)
+        {
+            var tasks = await _uow.Tasks.GetByProjectAsync(p.Id, ct);
+            var taskList = tasks.ToList();
+            var completed = taskList.Count(t => t.IsCompleted);
+
+            result.Add(new ProjectSummaryDto(
+                p.Id, p.Name, p.Key.Value, p.Color, p.Status.ToString(),
+                taskList.Count - completed, completed
+            ));
+        }
 
         return Result.Success(result);
     }

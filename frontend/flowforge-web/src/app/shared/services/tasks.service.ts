@@ -17,4 +17,10 @@ export class TasksService {
       newListId, newPosition, boardId
     });
   }
+
+  assignTask(taskId: string, assigneeId: string, boardId: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/tasks/${taskId}/assign`, {
+      assigneeId, boardId
+    });
+  }
 }

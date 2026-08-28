@@ -6,6 +6,7 @@ using FlowForge.Domain.Projects.Repositories;
 using FlowForge.Domain.Workflows.Repositories;
 using FlowForge.Infrastructure.Persistence;
 using FlowForge.Infrastructure.Persistence.Repositories;
+using FlowForge.Infrastructure.Services.AI;
 using FlowForge.Infrastructure.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,9 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        // AI
+        services.AddSingleton<IAiService, OpenAiService>();
 
         // Context accessors (scoped per request)
         services.AddHttpContextAccessor();

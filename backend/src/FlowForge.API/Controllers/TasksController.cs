@@ -47,6 +47,25 @@ public class TasksController : ControllerBase
         }
         return result.ToActionResult();
     }
+
+    [HttpPost("{id:guid}/assign")]
+    public async Task<IActionResult> Assign(
+        Guid id,
+        [FromBody] AssignTaskBody body,
+        [FromServices] IHubContext<BoardHub> hub)
+    {
+        var result = await _mediator.Send(new AssignTaskCommand(id, body.AssigneeId));
+        if (result.IsSuccess && body.BoardId.HasValue)
+        {
+            await hub.Clients.Group($"board-{body.BoardId}").SendAsync("TaskAssigned", new
+            {
+                taskId = id,
+                assigneeId = body.AssigneeId
+            });
+        }
+        return result.ToActionResult();
+    }
 }
 
 public record MoveTaskBody(Guid NewListId, int NewPosition, Guid? BoardId);
+public record AssignTaskBody(Guid AssigneeId, Guid? BoardId);

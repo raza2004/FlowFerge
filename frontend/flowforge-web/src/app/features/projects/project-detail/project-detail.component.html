@@ -48,9 +48,13 @@
                       {{ typeIcon(task.type) }}
                     </mat-icon>
                     <span class="text-xs font-mono text-gray-500">{{ task.taskNumber }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded ml-auto" [class]="priorityColor(task.priority)">
+                    <span class="text-xs px-2 py-0.5 rounded" [class]="priorityColor(task.priority)">
                       {{ task.priority }}
                     </span>
+                    <button mat-icon-button class="!w-5 !h-5 !ml-auto" matTooltip="AI Assist"
+                            (click)="$event.stopPropagation(); openAiDialog(task)">
+                      <mat-icon class="!text-base !w-4 !h-4 text-forge-500">auto_awesome</mat-icon>
+                    </button>
                   </div>
                   <div class="text-sm font-medium text-gray-900 leading-snug">{{ task.title }}</div>
                   @if (task.dueDate || task.commentCount > 0) {
@@ -85,6 +89,31 @@
 
     @if (board()) {
       <div class="mt-6 bg-white border border-gray-200 rounded-lg">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+          <div>
+            <h2 class="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+              <mat-icon class="!text-base text-forge-500">auto_awesome</mat-icon> AI Summary
+            </h2>
+            <p class="text-xs text-gray-500">A quick status update generated from this project's tasks</p>
+          </div>
+          <button mat-stroked-button [disabled]="aiSummaryLoading()" (click)="generateAiSummary()">
+            {{ aiSummary() ? 'Regenerate' : 'Generate summary' }}
+          </button>
+        </div>
+        <div class="px-4 py-3 text-sm">
+          @if (aiSummaryLoading()) {
+            <p class="text-gray-400">Thinking…</p>
+          } @else if (aiSummaryError()) {
+            <p class="text-red-600 text-xs">{{ aiSummaryError() }}</p>
+          } @else if (aiSummary()) {
+            <p class="text-gray-700 leading-relaxed">{{ aiSummary() }}</p>
+          } @else {
+            <p class="text-gray-400">No summary generated yet.</p>
+          }
+        </div>
+      </div>
+
+      <div class="mt-4 bg-white border border-gray-200 rounded-lg">
         <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
           <div>
             <h2 class="font-semibold text-gray-900 text-sm">Automations</h2>

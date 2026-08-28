@@ -16,15 +16,18 @@ import { MatDialogRef } from '@angular/material/dialog';
 import {
   CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem
 } from '@angular/cdk/drag-drop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ProjectsService } from '../../../shared/services/projects.service';
 import { BoardsService } from '../../../shared/services/boards.service';
 import { TasksService } from '../../../shared/services/tasks.service';
 import { AutomationsService } from '../../../shared/services/automations.service';
 import { DashboardService } from '../../../shared/services/dashboard.service';
+import { AiService } from '../../../shared/services/ai.service';
 import { SignalrService } from '../../../core/services/signalr.service';
 import { ProjectDto, BoardDto, BoardListDto, TaskCardDto } from '../../../shared/models/project.models';
 import { AutomationRuleDto, AutomationActionType, AutomationTriggerType } from '../../../shared/models/automation.models';
 import { TenantMemberDto } from '../../../shared/models/auth.models';
+import { TaskAiDialogComponent, TaskAiDialogData } from './task-ai-dialog.component';
 
 @Component({
   selector: 'app-create-task-dialog',
@@ -179,6 +182,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private tasksService = inject(TasksService);
   private automationsService = inject(AutomationsService);
   private dashboardService = inject(DashboardService);
+  private aiService = inject(AiService);
   private signalr = inject(SignalrService);
   private dialog = inject(MatDialog);
 
@@ -188,6 +192,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   automations = signal<AutomationRuleDto[]>([]);
   members = signal<TenantMemberDto[]>([]);
+
+  aiSummary = signal<string | null>(null);
+  aiSummaryLoading = signal(false);
+  aiSummaryError = signal<string | null>(null);
 
   get listConnectedTo(): string[] {
     return this.board()?.lists.map(l => `list-${l.id}`) ?? [];
@@ -293,6 +301,51 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     return rule.actionType === AutomationActionType.AssignUser
       ? `Assign to ${rule.actionUserName}`
       : `Notify ${rule.actionUserName}`;
+  }
+
+  openAiDialog(task: TaskCardDto) {
+    const board = this.board();
+    if (!board) return;
+
+    const ref = this.dialog.open(TaskAiDialogComponent, {
+      width: '520px',
+      data: { taskId: task.id, taskTitle: task.title, boardId: board.id } as TaskAiDialogData
+    });
+    ref.afterClosed().subscribe(changed => {
+      // Applying a breakdown creates new task cards; assigning changes an existing one -
+      // simplest correct refresh is just re-fetching the board rather than patching both cases locally.
+      if (changed) this.reloadBoard();
+    });
+  }
+
+  private reloadBoard() {
+    const project = this.project();
+    if (!project) return;
+    this.boardsService.getProjectBoards(project.id).subscribe(boards => {
+      if (boards.length > 0) this.board.set(boards[0]);
+    });
+  }
+
+  generateAiSummary() {
+    const project = this.project();
+    if (!project) return;
+
+    this.aiSummaryLoading.set(true);
+    this.aiSummaryError.set(null);
+    this.aiService.getProjectSummary(project.id).subscribe({
+      next: res => {
+        this.aiSummary.set(res.summary);
+        this.aiSummaryLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.aiSummaryError.set(
+          err.error?.title === 'AI.NotConfigured'
+            ? 'AI features need an OpenAI API key configured on the server (OpenAI:ApiKey).'
+            : err.error?.detail ?? 'Could not generate a summary right now.'
+        );
+        this.aiSummaryLoading.set(false);
+      }
+    });
   }
 
   private applyRemoteMove(event: any) {
