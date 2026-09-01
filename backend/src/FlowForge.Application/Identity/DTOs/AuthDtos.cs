@@ -29,7 +29,8 @@ public record UserDto(
     string FullName,
     string? AvatarUrl,
     bool IsSystemAdmin,
-    bool IsEmailVerified
+    bool IsEmailVerified,
+    bool EmailNotificationsEnabled
 );
 
 public record TenantDto(
@@ -38,7 +39,8 @@ public record TenantDto(
     string Slug,
     string? LogoUrl,
     string PlanTier,
-    bool IsActive
+    bool IsActive,
+    string? SlackWebhookUrl
 );
 
 public record MembershipDto(

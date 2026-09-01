@@ -110,8 +110,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
                 accessToken,
                 refreshToken.Token,
                 expiresAt,
-                new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified),
-                new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive)
+                new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified, user.EmailNotificationsEnabled),
+                new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive, tenant.SlackWebhookUrl)
             ));
         }
         catch

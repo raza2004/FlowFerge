@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(node e2e-assign.mjs)",
-      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 5076,4200 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')"
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 5076,4200 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')",
+      "Bash(git checkout *)",
+      "Bash(rm backend/src/FlowForge.Infrastructure/Persistence/Migrations/20260828155031_AddSlackAndEmailPreferences.cs)",
+      "Bash(rm backend/src/FlowForge.Infrastructure/Persistence/Migrations/20260828155031_AddSlackAndEmailPreferences.Designer.cs)"
     ]
   }
 }

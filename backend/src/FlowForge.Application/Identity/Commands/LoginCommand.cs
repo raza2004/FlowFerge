@@ -76,14 +76,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             var tenant = await _uow.Tenants.GetByIdAsync(primaryMembership.TenantId, ct);
             if (tenant != null)
-                tenantDto = new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive);
+                tenantDto = new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive, tenant.SlackWebhookUrl);
         }
 
         return Result.Success(new AuthResponse(
             accessToken,
             refreshToken.Token,
             expiresAt,
-            new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified),
+            new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified, user.EmailNotificationsEnabled),
             tenantDto
         ));
     }

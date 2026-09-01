@@ -48,6 +48,20 @@ export class AuthService {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
 
+  /** Applies a partial update (e.g. a saved preference) to the stored user, keeping the signal and localStorage in sync. */
+  patchUser(partial: Partial<UserInfo>): void {
+    const updated = { ...this.user(), ...partial } as UserInfo;
+    this.user.set(updated);
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+  }
+
+  /** Applies a partial update (e.g. a saved Slack webhook) to the stored tenant, keeping the signal and localStorage in sync. */
+  patchTenant(partial: Partial<TenantInfo>): void {
+    const updated = { ...this.tenant(), ...partial } as TenantInfo;
+    this.tenant.set(updated);
+    localStorage.setItem(TENANT_KEY, JSON.stringify(updated));
+  }
+
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }

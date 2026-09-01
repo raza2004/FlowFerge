@@ -1,5 +1,4 @@
-using FlowForge.Application.Common.Abstractions;
-using FlowForge.Application.Notifications.DTOs;
+using FlowForge.Application.Notifications.Services;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Notifications;
 using FlowForge.Domain.Notifications.Enums;
@@ -19,13 +18,13 @@ namespace FlowForge.Application.Workflows.EventHandlers;
 public class TaskMovedAutomationHandler : INotificationHandler<TaskMovedEvent>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IRealtimeNotifier _realtime;
+    private readonly INotificationDispatcher _dispatcher;
     private readonly ILogger<TaskMovedAutomationHandler> _logger;
 
-    public TaskMovedAutomationHandler(IUnitOfWork uow, IRealtimeNotifier realtime, ILogger<TaskMovedAutomationHandler> logger)
+    public TaskMovedAutomationHandler(IUnitOfWork uow, INotificationDispatcher dispatcher, ILogger<TaskMovedAutomationHandler> logger)
     {
         _uow = uow;
-        _realtime = realtime;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
@@ -41,7 +40,7 @@ public class TaskMovedAutomationHandler : INotificationHandler<TaskMovedEvent>
         var project = await _uow.Projects.GetByIdAsync(task.ProjectId, ct);
         var projectName = project?.Name ?? "a project";
         var tasksChanged = false;
-        var toPush = new List<(Guid UserId, NotificationDto Dto)>();
+        var toDispatch = new List<Notification>();
 
         foreach (var rule in matching)
         {
@@ -78,16 +77,15 @@ public class TaskMovedAutomationHandler : INotificationHandler<TaskMovedEvent>
 
             var created = notifResult.Value;
             await _uow.Notifications.AddAsync(created, ct);
-            toPush.Add((rule.ActionUserId, new NotificationDto(created.Id, created.Type, created.Title,
-                created.Message, created.RelatedTaskId, created.RelatedProjectId, created.IsRead, created.CreatedAt)));
+            toDispatch.Add(created);
         }
 
         if (tasksChanged) _uow.Tasks.Update(task);
         await _uow.SaveChangesAsync(ct);
 
-        // Push only after the notifications are durably saved, so a client never sees a
-        // real-time toast for something that turned out not to persist.
-        foreach (var (userId, dto) in toPush)
-            await _realtime.NotifyUserAsync(userId, "NotificationReceived", dto, ct);
+        // Dispatch (real-time + email + Slack) only after the notifications are durably
+        // saved, so a client never sees an alert for something that turned out not to persist.
+        foreach (var created in toDispatch)
+            await _dispatcher.DispatchAsync(created, ct);
     }
 }

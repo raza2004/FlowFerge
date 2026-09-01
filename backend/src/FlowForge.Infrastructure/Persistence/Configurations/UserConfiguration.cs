@@ -19,6 +19,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.PhoneNumber).HasMaxLength(50);
         b.Property(x => x.EmailVerificationToken).HasMaxLength(100);
         b.Property(x => x.Version).IsConcurrencyToken();
+        // Explicit default so the migration backfills existing rows to "on" (matching the
+        // domain default) instead of EF's implicit false/CLR-default for the ALTER TABLE.
+        b.Property(x => x.EmailNotificationsEnabled).HasDefaultValue(true);
 
         // Email is a value object — store as string
         b.Property(x => x.Email)

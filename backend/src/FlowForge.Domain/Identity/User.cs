@@ -22,6 +22,7 @@ public sealed class User : AggregateRoot
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntil { get; private set; }
     public bool IsSystemAdmin { get; private set; }
+    public bool EmailNotificationsEnabled { get; private set; } = true;
 
     private readonly List<Membership> _memberships = new();
     public IReadOnlyCollection<Membership> Memberships => _memberships.AsReadOnly();
@@ -113,6 +114,12 @@ public sealed class User : AggregateRoot
     public void PromoteToSystemAdmin()
     {
         IsSystemAdmin = true;
+        Touch();
+    }
+
+    public void SetEmailNotificationsEnabled(bool enabled)
+    {
+        EmailNotificationsEnabled = enabled;
         Touch();
     }
 }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using FlowForge.Application.Common.Behaviors;
+using FlowForge.Application.Notifications.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +23,8 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(assembly);
         services.AddAutoMapper(assembly);
+
+        services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 
         return services;
     }

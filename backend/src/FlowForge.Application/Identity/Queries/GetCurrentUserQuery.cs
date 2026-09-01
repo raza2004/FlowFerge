@@ -46,11 +46,11 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, R
             membershipDtos.Add(new MembershipDto(tenant.Id, tenant.Name, tenant.Slug, m.Role.ToString(), m.JoinedAt));
 
             if (_currentUser.TenantId == tenant.Id)
-                activeTenant = new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive);
+                activeTenant = new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive, tenant.SlackWebhookUrl);
         }
 
         return Result.Success(new CurrentUserResponse(
-            new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified),
+            new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified, user.EmailNotificationsEnabled),
             membershipDtos,
             activeTenant
         ));

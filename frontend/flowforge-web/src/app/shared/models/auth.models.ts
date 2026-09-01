@@ -30,6 +30,7 @@ export interface UserInfo {
   avatarUrl: string | null;
   isSystemAdmin: boolean;
   isEmailVerified: boolean;
+  emailNotificationsEnabled: boolean;
 }
 
 export interface TenantInfo {
@@ -39,6 +40,7 @@ export interface TenantInfo {
   logoUrl: string | null;
   planTier: string;
   isActive: boolean;
+  slackWebhookUrl: string | null;
 }
 
 export interface TenantMemberDto {

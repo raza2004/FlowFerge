@@ -16,6 +16,7 @@ public sealed class Tenant : AggregateRoot
     public string PlanTier { get; private set; } = "Free";
     public int MaxMembers { get; private set; } = 5;
     public int MaxProjects { get; private set; } = 3;
+    public string? SlackWebhookUrl { get; private set; }
 
     private readonly List<Membership> _memberships = new();
     public IReadOnlyCollection<Membership> Memberships => _memberships.AsReadOnly();
@@ -84,4 +85,22 @@ public sealed class Tenant : AggregateRoot
     }
 
     public bool CanAddMember() => _memberships.Count < MaxMembers;
+
+    public Result SetSlackWebhook(string? webhookUrl)
+    {
+        if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
+            SlackWebhookUrl = null;
+            Touch();
+            return Result.Success();
+        }
+
+        var isValid = Uri.TryCreate(webhookUrl, UriKind.Absolute, out var uri) && uri.Scheme == "https";
+        if (!isValid)
+            return Result.Failure(Error.Validation("Tenant.InvalidWebhook", "Slack webhook must be a valid https:// URL"));
+
+        SlackWebhookUrl = webhookUrl.Trim();
+        Touch();
+        return Result.Success();
+    }
 }

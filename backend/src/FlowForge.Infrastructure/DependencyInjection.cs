@@ -8,6 +8,7 @@ using FlowForge.Infrastructure.Persistence;
 using FlowForge.Infrastructure.Persistence.Repositories;
 using FlowForge.Infrastructure.Services.AI;
 using FlowForge.Infrastructure.Services.Auth;
+using FlowForge.Infrastructure.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +51,11 @@ public static class DependencyInjection
 
         // AI
         services.AddSingleton<IAiService, OpenAiService>();
+
+        // Notifications (email + Slack; real-time SignalR push is registered in the API layer)
+        services.AddHttpClient(nameof(SlackWebhookNotifier));
+        services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        services.AddSingleton<ISlackNotifier, SlackWebhookNotifier>();
 
         // Context accessors (scoped per request)
         services.AddHttpContextAccessor();
