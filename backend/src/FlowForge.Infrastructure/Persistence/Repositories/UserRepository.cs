@@ -22,10 +22,16 @@ public class UserRepository : IUserRepository
     public Task<bool> EmailExistsAsync(Email email, CancellationToken ct = default) =>
         _ctx.Users.AnyAsync(u => u.Email == email, ct);
 
+    public Task<bool> AnyExistAsync(CancellationToken ct = default) =>
+        _ctx.Users.AnyAsync(ct);
+
     public async Task<IEnumerable<User>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default) =>
         await _ctx.Users
             .Where(u => _ctx.Memberships.Any(m => m.TenantId == tenantId && m.UserId == u.Id && m.IsActive))
             .ToListAsync(ct);
+
+    public async Task<IEnumerable<User>> GetAllAsync(int take = 200, CancellationToken ct = default) =>
+        await _ctx.Users.OrderByDescending(u => u.CreatedAt).Take(take).ToListAsync(ct);
 
     public async Task AddAsync(User user, CancellationToken ct = default) =>
         await _ctx.Users.AddAsync(user, ct);

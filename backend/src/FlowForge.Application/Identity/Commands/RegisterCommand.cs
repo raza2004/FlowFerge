@@ -65,6 +65,11 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         if (await _uow.Tenants.SlugExistsAsync(request.TenantSlug, ct))
             return Result.Failure<AuthResponse>(Error.Conflict("Tenant.SlugExists", "Workspace URL already taken"));
 
+        // The very first account in the whole system has nobody to grant it admin access,
+        // so it bootstraps itself - the same pattern most self-hosted tools use to avoid
+        // needing a separate seeding step before the admin panel becomes reachable at all.
+        var isFirstEverUser = !await _uow.Users.AnyExistAsync(ct);
+
         await _uow.BeginTransactionAsync(ct);
         try
         {
@@ -77,6 +82,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             }
 
             var user = userResult.Value;
+            if (isFirstEverUser) user.PromoteToSystemAdmin();
             await _uow.Users.AddAsync(user, ct);
 
             var tenantResult = Tenant.Create(request.TenantName, request.TenantSlug, user.Id);

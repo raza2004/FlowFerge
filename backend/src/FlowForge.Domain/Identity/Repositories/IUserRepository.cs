@@ -8,7 +8,9 @@ public interface IUserRepository
     Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default);
     Task<User?> GetByEmailVerificationTokenAsync(string token, CancellationToken ct = default);
     Task<bool> EmailExistsAsync(Email email, CancellationToken ct = default);
+    Task<bool> AnyExistAsync(CancellationToken ct = default);
     Task<IEnumerable<User>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default);
+    Task<IEnumerable<User>> GetAllAsync(int take = 200, CancellationToken ct = default);
     Task AddAsync(User user, CancellationToken ct = default);
     void Update(User user);
 }

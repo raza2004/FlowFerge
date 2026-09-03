@@ -1,3 +1,4 @@
+using FlowForge.Domain.Auditing;
 using FlowForge.Domain.Identity.Repositories;
 using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
@@ -26,6 +27,9 @@ public interface IUnitOfWork
 
     // Notifications
     INotificationRepository Notifications { get; }
+
+    // Auditing
+    IAuditLogRepository AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

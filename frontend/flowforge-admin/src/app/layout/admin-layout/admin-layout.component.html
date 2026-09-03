@@ -1,0 +1,46 @@
+<div class="flex h-screen bg-[#FAFAF9]">
+  <!-- Sidebar -->
+  <aside class="w-60 bg-[#18181B] text-zinc-300 flex flex-col">
+    <div class="px-4 py-4 border-b border-zinc-800 flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-md bg-admin-700 flex items-center justify-center text-white">
+        <mat-icon class="!text-lg">shield</mat-icon>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-white truncate">FlowForge</div>
+        <div class="text-[11px] text-zinc-500 truncate">System Admin</div>
+      </div>
+    </div>
+
+    <nav class="px-2 mt-3">
+      @for (item of nav; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="!bg-zinc-800 !text-white"
+           class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors">
+          <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="flex-1"></div>
+
+    <div class="p-3 border-t border-zinc-800">
+      <div class="flex items-center gap-2.5 px-2 py-1.5">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-admin-400 to-admin-700 flex items-center justify-center text-white font-bold text-xs">
+          {{ (auth.user()?.fullName ?? '?').charAt(0) }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm text-white truncate">{{ auth.user()?.fullName }}</div>
+          <div class="text-[11px] text-zinc-500 truncate">{{ auth.user()?.email }}</div>
+        </div>
+        <button mat-icon-button (click)="logout()" matTooltip="Sign out">
+          <mat-icon class="!text-lg !text-zinc-400">logout</mat-icon>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </main>
+</div>

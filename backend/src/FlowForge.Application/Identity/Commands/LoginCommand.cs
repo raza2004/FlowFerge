@@ -3,6 +3,7 @@ using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Identity.DTOs;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Identity;
+using FlowForge.Domain.Identity.Enums;
 using FlowForge.Domain.Identity.ValueObjects;
 using FlowForge.Shared.Results;
 using MediatR;
@@ -51,6 +52,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         if (user.IsLocked)
             return Result.Failure<AuthResponse>(Error.Forbidden("Auth.AccountLocked", $"Account locked until {user.LockedUntil:u}"));
 
+        if (user.Status == UserStatus.Suspended)
+            return Result.Failure<AuthResponse>(Error.Forbidden("Auth.AccountSuspended", "This account has been suspended"));
+
         if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
         {
             user.RecordFailedLogin();
@@ -61,8 +65,17 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         user.RecordSuccessfulLogin();
 
-        var memberships = await _uow.Memberships.GetByUserAsync(user.Id, ct);
-        var primaryMembership = memberships.FirstOrDefault(m => m.IsActive);
+        var memberships = (await _uow.Memberships.GetByUserAsync(user.Id, ct)).Where(m => m.IsActive).ToList();
+
+        // Never scope the session to a suspended tenant - if that's the only membership,
+        // the user still logs in (they may belong to other tenants later), just with no
+        // active tenant, same as any other "no tenant yet" state the app already handles.
+        Membership? primaryMembership = null;
+        foreach (var m in memberships)
+        {
+            var t = await _uow.Tenants.GetByIdAsync(m.TenantId, ct);
+            if (t?.IsActive == true) { primaryMembership = m; break; }
+        }
 
         var refreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent);
         await _uow.RefreshTokens.AddAsync(refreshToken, ct);

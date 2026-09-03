@@ -85,7 +85,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("SystemAdmin", p => p.RequireClaim("isSystemAdmin", "true"));
+});
 
 var app = builder.Build();
 

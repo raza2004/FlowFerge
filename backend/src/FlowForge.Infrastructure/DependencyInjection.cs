@@ -1,4 +1,5 @@
 using FlowForge.Application.Common.Abstractions;
+using FlowForge.Domain.Auditing;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Identity.Repositories;
 using FlowForge.Domain.Notifications.Repositories;
@@ -40,6 +41,9 @@ public static class DependencyInjection
         // Repositories (Workflows / Notifications)
         services.AddScoped<IAutomationRuleRepository, AutomationRuleRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+
+        // Repositories (Auditing)
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
