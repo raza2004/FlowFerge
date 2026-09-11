@@ -200,6 +200,13 @@ Verify all services are running.
 docker compose ps
 ```
 
+**Prefer not to install the .NET SDK or Node locally?** `docker compose up -d` (with no
+service name) also builds and starts the API and background worker alongside the infra
+above - the API applies its own EF Core migrations on startup, so there's no separate
+migration step. You'd still run the frontends with `ng serve` as in Step 6, since they
+aren't containerized. Steps 3-5 below are for running the API directly with `dotnet run`
+instead, which is faster to iterate on while developing the backend.
+
 ### Step 3 Configure Secrets
 
 The backend reads secrets from .NET User Secrets so nothing sensitive lives inside the repository.
@@ -290,6 +297,24 @@ From the dashboard, create a new project. Open DBeaver and confirm a row was add
 
 Open the dashboard in two browser tabs. Create a task in one tab and watch it appear in the other tab in real time. This confirms SignalR is working.
 
+## Running Tests
+
+```bash
+cd backend
+
+# Domain layer - pure business-rule tests, no external dependencies
+dotnet test tests/FlowForge.Domain.Tests
+
+# Application layer - command/query handlers, mocked via Moq
+dotnet test tests/FlowForge.Application.Tests
+
+# API integration tests - boots the real API against a throwaway PostgreSQL
+# container via Testcontainers, so Docker Desktop must be running for this one
+dotnet test tests/FlowForge.API.IntegrationTests
+```
+
+The same three steps run in CI on every push via `.github/workflows/ci.yml`, alongside a production build of both Angular apps.
+
 ## Build Status
 
 | Component | Status |
@@ -298,29 +323,34 @@ Open the dashboard in two browser tabs. Create a task in one tab and watch it ap
 | Application layer | Complete |
 | Infrastructure layer | Complete |
 | API layer | Complete |
-| Authentication flow | Complete |
+| Authentication flow | Complete (JWT + refresh tokens, account lockout, suspension) |
 | Multi-tenancy | Complete |
-| Projects, Boards, Tasks | In progress |
-| AI integration | In progress |
-| Frontend main app | In progress |
-| Admin panel | Planned |
-| Tests | In progress |
-| CI/CD pipeline | Planned |
-| Deployment guide | Planned |
+| Projects, Boards, Tasks | Complete (Kanban board, drag-and-drop, real-time sync via SignalR) |
+| Workflows & automations | Complete ("when task moves to list X, notify/assign user Y") |
+| AI integration | Complete (task breakdown, assignee suggestion, project summaries via OpenAI) |
+| Notifications | Complete (real-time via SignalR, email via SMTP, Slack via incoming webhook) |
+| Frontend main app | Complete |
+| Admin panel | Complete (separate Angular app: tenants, users, audit logs, system stats) |
+| Audit logging | Complete (every command logged automatically via a MediatR pipeline behavior) |
+| Tests | Complete (xUnit unit tests for Domain/Application, TestContainers-backed API integration tests) |
+| CI/CD pipeline | Complete (GitHub Actions: backend tests, integration tests, both frontend builds) |
+| Docker / deployment | `docker compose up` runs the entire stack (infra + API + Workers) with migrations applied automatically on startup |
 
-## Roadmap
+### Known gaps
 
-The features being built next, in order.
+A few packages referenced in the tech stack are not yet wired into the running app -
+listed here rather than left to be discovered:
 
-| Phase | Feature |
-|-------|---------|
-| Current | Frontend main app with login, dashboard, and project boards |
-| Next | Task management with drag and drop and real-time updates |
-| Then | OpenAI integration for AI summaries and auto assignment |
-| Then | Notification service with email and Slack |
-| Then | Admin panel for system management |
-| Then | Comprehensive test coverage with TestContainers |
-| Finally | Deployment to Railway with CI/CD pipeline |
+- **Redis** runs in Docker but nothing reads/writes to it yet (no caching or session
+  storage is implemented against it).
+- **RabbitMQ / MassTransit** runs in Docker but there is no publisher or consumer wired
+  up - all current cross-feature communication (automations, notifications) goes through
+  in-process MediatR domain events, not the message bus.
+- **MinIO** runs in Docker but there is no file upload/attachment feature calling it yet.
+- **FlowForge.Workers** is a running background service host but has no actual jobs
+  scheduled in it yet (no Hangfire recurring jobs).
+- Deployment has been built and tested locally via Docker Compose; it has not been
+  deployed to Railway (or any other host) yet.
 
 ## Why Each Technology Was Chosen
 

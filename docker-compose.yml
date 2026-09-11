@@ -80,6 +80,67 @@ services:
     networks:
       - flowforge-network
 
+  api:
+    build:
+      context: .
+      dockerfile: backend/src/FlowForge.API/Dockerfile
+    container_name: flowforge-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=flowforge;Username=postgres;Password=FlowForge@123"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+      MinIO__Endpoint: "minio:9000"
+      MinIO__AccessKey: minioadmin
+      MinIO__SecretKey: minioadmin
+      Email__SmtpHost: mailhog
+      Email__SmtpPort: "1025"
+      # Dev-only signing key so the container behaves the same as `dotnet run` locally -
+      # override this with a real secret (e.g. via an env_file) before deploying anywhere.
+      Jwt__Key: "FlowForge-Dev-Secret-Key-Must-Be-At-Least-32-Chars!"
+      Jwt__Issuer: FlowForge
+      Jwt__Audience: FlowForgeUsers
+    ports:
+      - "5076:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      minio:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - flowforge-network
+
+  workers:
+    build:
+      context: .
+      dockerfile: backend/src/FlowForge.Workers/Dockerfile
+    container_name: flowforge-workers
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=flowforge;Username=postgres;Password=FlowForge@123"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - flowforge-network
+
 volumes:
   flowforge-postgres-data:
   flowforge-minio-data:

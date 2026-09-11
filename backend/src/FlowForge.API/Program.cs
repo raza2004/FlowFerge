@@ -5,7 +5,9 @@ using FlowForge.API.Realtime;
 using FlowForge.Application;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Infrastructure;
+using FlowForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -92,6 +94,15 @@ builder.Services.AddAuthorization(opts =>
 
 var app = builder.Build();
 
+// Applying migrations on startup keeps `docker-compose up` a one-command way to run the
+// whole stack against a fresh database - no separate `dotnet ef database update` step.
+// Migrations are idempotent, so this is a no-op once the schema is already current.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FlowForgeDbContext>();
+    db.Database.Migrate();
+}
+
 // Middleware order is important
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -111,3 +122,6 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapGet("/", () => "FlowForge API is running. See /swagger");
 
 app.Run();
+
+/// <summary>Makes the top-level Program reachable as a generic type argument for WebApplicationFactory&lt;Program&gt; in integration tests.</summary>
+public partial class Program { }

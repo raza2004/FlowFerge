@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  backend-unit-tests:
+    name: Backend / unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore backend/FlowForge.sln
+
+      - name: Build
+        run: dotnet build backend/FlowForge.sln --no-restore --configuration Release
+
+      - name: Domain tests
+        run: dotnet test backend/tests/FlowForge.Domain.Tests --no-build --configuration Release --logger "trx;LogFileName=domain-tests.trx"
+
+      - name: Application tests
+        run: dotnet test backend/tests/FlowForge.Application.Tests --no-build --configuration Release --logger "trx;LogFileName=application-tests.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-unit-test-results
+          path: backend/tests/**/TestResults/*.trx
+
+  backend-integration-tests:
+    name: Backend / integration tests (real PostgreSQL via Testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # ubuntu-latest runners have Docker preinstalled, which is all Testcontainers needs
+      # to spin up the real PostgreSQL container CustomWebApplicationFactory depends on.
+      - name: Run integration tests
+        run: dotnet test backend/tests/FlowForge.API.IntegrationTests --configuration Release --logger "trx;LogFileName=integration-tests.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-integration-test-results
+          path: backend/tests/FlowForge.API.IntegrationTests/TestResults/*.trx
+
+  frontend-build:
+    name: Frontend / build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [flowforge-web, flowforge-admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend/${{ matrix.app }}
+        run: npm ci
+
+      - name: Build (production)
+        working-directory: frontend/${{ matrix.app }}
+        run: npx ng build --configuration production
