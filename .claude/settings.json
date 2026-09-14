@@ -6,7 +6,11 @@
       "Bash(git checkout *)",
       "Bash(rm backend/src/FlowForge.Infrastructure/Persistence/Migrations/20260828155031_AddSlackAndEmailPreferences.cs)",
       "Bash(rm backend/src/FlowForge.Infrastructure/Persistence/Migrations/20260828155031_AddSlackAndEmailPreferences.Designer.cs)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(rm -rf node_modules package-lock.json)",
+      "Bash(npm audit *)"
     ]
   }
 }

@@ -2,7 +2,6 @@ using FlowForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -32,18 +31,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     {
         builder.UseEnvironment("Testing");
 
-        builder.ConfigureAppConfiguration((_, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = _postgres.GetConnectionString(),
-                ["Jwt:Key"] = "Integration-Test-Only-Secret-Key-32Chars!",
-                ["Jwt:Issuer"] = "FlowForge",
-                ["Jwt:Audience"] = "FlowForgeUsers",
-                ["Jwt:AccessTokenMinutes"] = "15",
-                ["Jwt:RefreshTokenDays"] = "7"
-            });
-        });
+        // Program.cs reads builder.Configuration["Jwt:Key"] directly at the top level,
+        // before builder.Build() runs. ConfigureAppConfiguration's additions only land
+        // once the host actually builds - too late for that line, so it always saw
+        // "missing" regardless of what was registered here. UseSetting writes into the
+        // config source WebApplicationBuilder.Configuration itself is built from, so it's
+        // visible even to code that reads configuration before Build() is called - which
+        // is exactly why it's the mechanism WebApplicationFactory docs recommend for this.
+        builder.UseSetting("ConnectionStrings:DefaultConnection", _postgres.GetConnectionString());
+        builder.UseSetting("Jwt:Key", "Integration-Test-Only-Secret-Key-32Chars!");
+        builder.UseSetting("Jwt:Issuer", "FlowForge");
+        builder.UseSetting("Jwt:Audience", "FlowForgeUsers");
+        builder.UseSetting("Jwt:AccessTokenMinutes", "15");
+        builder.UseSetting("Jwt:RefreshTokenDays", "7");
     }
 
     public async Task InitializeAsync()

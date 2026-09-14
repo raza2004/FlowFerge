@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: flowforge-postgres
     environment:
-      POSTGRES_DB: flowforge
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: FlowForge@123
+      POSTGRES_DB: ${POSTGRES_DB:-flowforge}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env - copy .env.example to get started}
     ports:
       - "5432:5432"
     volumes:
@@ -14,7 +14,7 @@ services:
     networks:
       - flowforge-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,8 +32,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: flowforge-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -46,8 +46,8 @@ services:
     container_name: flowforge-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env - copy .env.example to get started}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -88,21 +88,19 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=flowforge;Username=postgres;Password=FlowForge@123"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-flowforge};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
       Redis__ConnectionString: "redis:6379"
       RabbitMQ__Host: rabbitmq
-      RabbitMQ__Username: guest
-      RabbitMQ__Password: guest
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
       MinIO__Endpoint: "minio:9000"
-      MinIO__AccessKey: minioadmin
-      MinIO__SecretKey: minioadmin
+      MinIO__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
+      MinIO__SecretKey: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
       Email__SmtpHost: mailhog
       Email__SmtpPort: "1025"
-      # Dev-only signing key so the container behaves the same as `dotnet run` locally -
-      # override this with a real secret (e.g. via an env_file) before deploying anywhere.
-      Jwt__Key: "FlowForge-Dev-Secret-Key-Must-Be-At-Least-32-Chars!"
-      Jwt__Issuer: FlowForge
-      Jwt__Audience: FlowForgeUsers
+      Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env - copy .env.example to get started, at least 32 chars}
+      Jwt__Issuer: ${JWT_ISSUER:-FlowForge}
+      Jwt__Audience: ${JWT_AUDIENCE:-FlowForgeUsers}
     ports:
       - "5076:8080"
     depends_on:
@@ -127,11 +125,11 @@ services:
     container_name: flowforge-workers
     environment:
       DOTNET_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=flowforge;Username=postgres;Password=FlowForge@123"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-flowforge};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
       Redis__ConnectionString: "redis:6379"
       RabbitMQ__Host: rabbitmq
-      RabbitMQ__Username: guest
-      RabbitMQ__Password: guest
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-guest}
     depends_on:
       postgres:
         condition: service_healthy

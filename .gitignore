@@ -28,6 +28,7 @@
 .env.production
 .env.*.local
 **/.env*
+!**/.env.example
 
 # Secret files
 secrets.json

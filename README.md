@@ -186,6 +186,13 @@ cd FlowForge
 
 ### Step 2 Start Background Services
 
+Docker Compose reads its credentials from a `.env` file (gitignored, never committed) rather than from the compose file itself. Create yours from the template first.
+
+```bash
+cp .env.example .env
+# then open .env and set real values - at minimum POSTGRES_PASSWORD, MINIO_ROOT_PASSWORD, and JWT_KEY
+```
+
 This single command starts PostgreSQL, Redis, RabbitMQ, MinIO, MailHog, and Seq inside Docker containers.
 
 ```bash
@@ -207,15 +214,23 @@ migration step. You'd still run the frontends with `ng serve` as in Step 6, sinc
 aren't containerized. Steps 3-5 below are for running the API directly with `dotnet run`
 instead, which is faster to iterate on while developing the backend.
 
-### Step 3 Configure Secrets
+### Step 3 Configure Secrets (required)
 
-The backend reads secrets from .NET User Secrets so nothing sensitive lives inside the repository.
+`appsettings.Development.json` intentionally ships with these values blank - the backend
+reads them from .NET User Secrets instead, so nothing sensitive lives in the repository.
+Running `dotnet run` without doing this step first will fail fast with "Jwt:Key missing".
+
+Use the same values you put in your `.env` file (see [Step 2](#step-2-start-background-services)) so the API behaves identically whether you run it via `dotnet run` or via `docker compose up`.
 
 ```bash
 cd backend/src/FlowForge.API
 dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=flowforge;Username=postgres;Password=FlowForge@123"
-dotnet user-secrets set "Jwt:Key" "FlowForgeSuperSecretJwtKeyAtLeast32CharactersLongForSecurity2026"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=flowforge;Username=postgres;Password=<your POSTGRES_PASSWORD from .env>"
+dotnet user-secrets set "Jwt:Key" "<your JWT_KEY from .env, at least 32 characters>"
+dotnet user-secrets set "RabbitMQ:Username" "<your RABBITMQ_USER from .env>"
+dotnet user-secrets set "RabbitMQ:Password" "<your RABBITMQ_PASSWORD from .env>"
+dotnet user-secrets set "MinIO:AccessKey" "<your MINIO_ROOT_USER from .env>"
+dotnet user-secrets set "MinIO:SecretKey" "<your MINIO_ROOT_PASSWORD from .env>"
 dotnet user-secrets set "OpenAI:ApiKey" "your-openai-api-key-here"
 ```
 
