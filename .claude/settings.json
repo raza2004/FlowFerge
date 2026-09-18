@@ -10,7 +10,10 @@
       "Bash(gh --version)",
       "Bash(gh auth *)",
       "Bash(rm -rf node_modules package-lock.json)",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "Bash(find \"d:/Dektop\" -maxdepth 3 -iname \"*healthnexus*\" 2>&1)",
+      "Read(//d/Dektop/**)",
+      "Read(//d/Dektop/Portfolio/**)"
     ]
   }
 }

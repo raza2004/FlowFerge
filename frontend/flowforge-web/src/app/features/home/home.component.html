@@ -1,0 +1,217 @@
+<div class="bg-white text-zinc-900">
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-100">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-forge-600 flex items-center justify-center">
+          <mat-icon class="!text-lg !w-5 !h-5 text-white">bolt</mat-icon>
+        </div>
+        <span class="font-display font-semibold text-lg tracking-tight">FlowForge</span>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm text-zinc-600">
+        <a href="#features" class="hover:text-zinc-900 transition-colors">Features</a>
+        <a href="#ai" class="hover:text-zinc-900 transition-colors">AI</a>
+        <a href="#faq" class="hover:text-zinc-900 transition-colors">FAQ</a>
+      </nav>
+
+      <div class="hidden md:flex items-center gap-3">
+        <a routerLink="/auth/login"
+           class="text-sm font-medium text-zinc-700 hover:text-zinc-900 px-3 py-2 transition-colors">
+          Sign in
+        </a>
+        <a routerLink="/auth/register"
+           class="text-sm font-medium bg-forge-600 text-white px-4 py-2 rounded-lg hover:bg-forge-700 transition-colors">
+          Get started
+        </a>
+      </div>
+
+      <button class="md:hidden text-zinc-700" (click)="mobileMenuOpen.set(!mobileMenuOpen())">
+        <mat-icon>{{ mobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+
+    @if (mobileMenuOpen()) {
+      <div class="md:hidden border-t border-zinc-100 px-6 py-4 space-y-3">
+        <a href="#features" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">Features</a>
+        <a href="#ai" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">AI</a>
+        <a href="#faq" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">FAQ</a>
+        <div class="flex gap-3 pt-2">
+          <a routerLink="/auth/login" class="flex-1 text-center text-sm font-medium border border-zinc-200 rounded-lg px-4 py-2">Sign in</a>
+          <a routerLink="/auth/register" class="flex-1 text-center text-sm font-medium bg-forge-600 text-white rounded-lg px-4 py-2">Get started</a>
+        </div>
+      </div>
+    }
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-50 text-accent-700 text-xs font-mono uppercase tracking-widest mb-6">
+      <mat-icon class="!text-sm !w-4 !h-4">auto_awesome</mat-icon>
+      AI-augmented · multi-tenant · real-time
+    </div>
+    <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] mb-6">
+      Project management,
+      <span class="text-forge-600 italic">built like production software</span>
+    </h1>
+    <p class="text-lg text-zinc-500 max-w-2xl mx-auto mb-10">
+      Workspaces, Kanban boards, automations, AI, and real-time collaboration — the platform
+      Jira, Linear, and Monday.com trained your team to expect, engineered from the ground up
+      with .NET 8 and Angular 18.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a routerLink="/auth/register"
+         class="w-full sm:w-auto text-center bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 transition-colors">
+        Create your workspace
+      </a>
+      <a routerLink="/auth/login"
+         class="w-full sm:w-auto text-center border border-zinc-200 text-zinc-700 font-medium px-8 py-3.5 rounded-lg hover:border-zinc-300 hover:bg-zinc-50 transition-colors">
+        Sign in
+      </a>
+    </div>
+  </section>
+
+  <!-- Tech stack strip -->
+  <section class="border-y border-zinc-100 bg-zinc-50/60">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <p class="text-center text-xs font-mono uppercase tracking-widest text-zinc-400 mb-5">
+        Real engineering, not a mockup
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        @for (tech of techStack; track tech) {
+          <span class="text-sm font-medium text-zinc-500">{{ tech }}</span>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="max-w-6xl mx-auto px-6 py-24">
+    <div class="text-center mb-16">
+      <p class="text-xs font-mono uppercase tracking-widest text-accent-700 mb-3">What's actually built</p>
+      <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight">Everything a team needs, working today</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (feature of features; track feature.number) {
+        <div class="border border-zinc-200 rounded-xl p-6 hover:border-forge-300 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-xs text-zinc-400">{{ feature.number }}</span>
+            <div class="w-9 h-9 rounded-lg bg-forge-50 flex items-center justify-center">
+              <mat-icon class="!text-lg !w-5 !h-5 text-forge-600">{{ feature.icon }}</mat-icon>
+            </div>
+          </div>
+          <h3 class="font-display font-semibold text-lg mb-2">{{ feature.title }}</h3>
+          <p class="text-sm text-zinc-500 leading-relaxed">{{ feature.description }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- AI spotlight -->
+  <section id="ai" class="bg-zinc-950 text-white">
+    <div class="max-w-6xl mx-auto px-6 py-24">
+      <div class="text-center mb-16">
+        <p class="text-xs font-mono uppercase tracking-widest text-accent-400 mb-3">The AI engine</p>
+        <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+          AI as a feature, <span class="italic text-forge-400">not a chatbot bolted on</span>
+        </h2>
+        <p class="text-zinc-400 max-w-xl mx-auto">
+          Every suggestion is reviewed before it changes anything — you approve subtasks, confirm
+          an assignment, or just read a summary. The model never writes to your board on its own.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @for (capability of aiCapabilities; track capability.title) {
+          <div class="border border-zinc-800 rounded-xl p-6 bg-zinc-900/50">
+            <div class="w-10 h-10 rounded-lg bg-accent-500/10 flex items-center justify-center mb-4">
+              <mat-icon class="!text-lg !w-5 !h-5 text-accent-400">{{ capability.icon }}</mat-icon>
+            </div>
+            <h3 class="font-display font-semibold text-lg mb-2">{{ capability.title }}</h3>
+            <p class="text-sm text-zinc-400 leading-relaxed">{{ capability.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Split section -->
+  <section class="grid grid-cols-1 md:grid-cols-2">
+    <a routerLink="/auth/register"
+       class="group px-8 py-20 md:py-28 bg-forge-600 text-white flex flex-col justify-center hover:bg-forge-700 transition-colors">
+      <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">groups</mat-icon>
+      <h3 class="font-display text-2xl font-semibold mb-2">For your team</h3>
+      <p class="text-forge-100 mb-4 max-w-sm">
+        Create a workspace, invite your team, and organize work into boards with drag-and-drop,
+        sprints, comments, and real-time updates.
+      </p>
+      <span class="inline-flex items-center gap-1 font-medium text-sm">
+        Get started <mat-icon class="!text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+      </span>
+    </a>
+    <a routerLink="/auth/register"
+       class="group px-8 py-20 md:py-28 bg-zinc-950 text-white flex flex-col justify-center hover:bg-zinc-900 transition-colors">
+      <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">admin_panel_settings</mat-icon>
+      <h3 class="font-display text-2xl font-semibold mb-2">For your organization</h3>
+      <p class="text-zinc-400 mb-4 max-w-sm">
+        A separate admin application to manage every tenant and user, watch system-wide stats,
+        and review a full audit trail — the first account you create becomes the admin.
+      </p>
+      <span class="inline-flex items-center gap-1 font-medium text-sm text-accent-400">
+        Learn more <mat-icon class="!text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+      </span>
+    </a>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="max-w-3xl mx-auto px-6 py-24">
+    <div class="text-center mb-12">
+      <p class="text-xs font-mono uppercase tracking-widest text-accent-700 mb-3">Questions</p>
+      <h2 class="font-display text-3xl font-semibold tracking-tight">Frequently asked</h2>
+    </div>
+    <div class="space-y-3">
+      @for (faq of faqs(); track faq.question; let i = $index) {
+        <div class="border border-zinc-200 rounded-xl overflow-hidden">
+          <button (click)="toggleFaq(i)"
+                  class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors">
+            <span class="font-medium text-zinc-900">{{ faq.question }}</span>
+            <mat-icon class="!text-lg text-zinc-400 flex-shrink-0 transition-transform"
+                      [class.rotate-180]="faq.open">expand_more</mat-icon>
+          </button>
+          @if (faq.open) {
+            <p class="px-5 pb-4 text-sm text-zinc-500 leading-relaxed">{{ faq.answer }}</p>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- CTA band -->
+  <section class="bg-zinc-50 border-y border-zinc-100">
+    <div class="max-w-3xl mx-auto px-6 py-20 text-center">
+      <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+        Ready to see it running?
+      </h2>
+      <p class="text-zinc-500 mb-8">
+        Create a workspace in under a minute — no credit card, no sales call.
+      </p>
+      <a routerLink="/auth/register"
+         class="inline-block bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 transition-colors">
+        Create your workspace
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-md bg-forge-600 flex items-center justify-center">
+        <mat-icon class="!text-sm !w-4 !h-4 text-white">bolt</mat-icon>
+      </div>
+      <span class="font-display font-semibold text-sm">FlowForge</span>
+    </div>
+    <p class="text-xs text-zinc-400 text-center">
+      An AI-augmented, multi-tenant project management platform — built with .NET 8, Angular 18, and a production-grade event-driven architecture.
+    </p>
+  </footer>
+</div>
