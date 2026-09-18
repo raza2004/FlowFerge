@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -51,6 +52,16 @@ import { AdminAuthService } from '../../core/services/admin-auth.service';
               {{ isLoading() ? 'Signing in…' : 'Sign in' }}
             </button>
           </form>
+
+          <p class="text-center text-xs text-gray-500 mt-6 leading-relaxed">
+            There's no sign-up here — this app is admin-only.
+            The very first account ever registered in FlowForge automatically becomes a
+            system admin. If that's not you yet,
+            <a [href]="mainAppRegisterUrl" class="text-admin-700 hover:underline font-medium">
+              register in the main app
+            </a>
+            and sign in here with those same credentials.
+          </p>
         </div>
       </div>
     </div>
@@ -63,6 +74,7 @@ export class LoginComponent {
 
   isLoading = signal(false);
   error = signal<string | null>(null);
+  mainAppRegisterUrl = `${environment.mainAppUrl}/auth/register`;
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
