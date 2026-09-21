@@ -32,7 +32,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
   template: `
     <h2 mat-dialog-title class="flex items-center gap-2">
       <mat-icon class="text-forge-600">auto_awesome</mat-icon>
-      AI Assist — {{ data.taskTitle }}
+      AI Assist: {{ data.taskTitle }}
     </h2>
 
     <mat-dialog-content class="!min-w-[420px]">
@@ -78,7 +78,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
             <h3 class="text-sm font-semibold text-gray-800">Suggested assignee</h3>
             <button mat-stroked-button (click)="loadAssignee()" [disabled]="assigneeLoading()">
               @if (assigneeLoading()) { <mat-spinner diameter="16" class="!inline-block mr-1"></mat-spinner> }
-              {{ assignee() ? 'Re-suggest' : 'Suggest assignee' }}
+              {{ assignee() ? 'Suggest again' : 'Suggest assignee' }}
             </button>
           </div>
 

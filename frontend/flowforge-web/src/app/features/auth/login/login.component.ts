@@ -72,7 +72,7 @@ export class LoginComponent {
       case 404:
         return {
           message: 'No account found with this email.',
-          hint: 'Double-check your email or sign up for a new account.',
+          hint: 'Double check your email or sign up for a new account.',
           field: 'email'
         };
       case 423:

@@ -43,7 +43,7 @@ import { AdminUserDto } from '../../shared/models/admin.models';
                   }
                 </td>
                 <td class="px-4 py-3 text-zinc-600">{{ u.createdAt | date:'MMM d, y' }}</td>
-                <td class="px-4 py-3 text-zinc-600">{{ u.lastLoginAt ? (u.lastLoginAt | date:'MMM d, y') : '—' }}</td>
+                <td class="px-4 py-3 text-zinc-600">{{ u.lastLoginAt ? (u.lastLoginAt | date:'MMM d, y') : 'N/A' }}</td>
                 <td class="px-4 py-3">
                   @if (u.status === 'Suspended') {
                     <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Suspended</span>

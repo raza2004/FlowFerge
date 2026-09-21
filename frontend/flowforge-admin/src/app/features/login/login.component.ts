@@ -22,7 +22,11 @@ import { environment } from '../../../environments/environment';
         <div class="text-center mb-8">
           <div class="inline-flex items-center gap-2 mb-4">
             <div class="w-10 h-10 bg-admin-900 rounded-xl flex items-center justify-center">
-              <mat-icon class="text-white">shield</mat-icon>
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
+                <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
+                <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
+              </svg>
             </div>
             <span class="text-2xl font-bold text-gray-900">FlowForge Admin</span>
           </div>
@@ -54,7 +58,7 @@ import { environment } from '../../../environments/environment';
           </form>
 
           <p class="text-center text-xs text-gray-500 mt-6 leading-relaxed">
-            There's no sign-up here — this app is admin-only.
+            There's no signup here. This app is for admins only.
             The very first account ever registered in FlowForge automatically becomes a
             system admin. If that's not you yet,
             <a [href]="mainAppRegisterUrl" class="text-admin-700 hover:underline font-medium">

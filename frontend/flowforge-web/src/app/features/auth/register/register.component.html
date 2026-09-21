@@ -7,7 +7,11 @@
 
     <a routerLink="/" class="relative flex items-center gap-2.5">
       <div class="w-9 h-9 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center">
-        <mat-icon class="!text-lg text-white">bolt</mat-icon>
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
+          <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
+          <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
+        </svg>
       </div>
       <span class="font-display font-semibold text-lg">FlowForge</span>
     </a>
@@ -17,10 +21,10 @@
         Set up your workspace in under a minute
       </h2>
       <p class="text-forge-100 mb-8 max-w-sm">
-        No credit card, no sales call — just a working project management platform.
+        No credit card, no sales call, just a working project management platform.
       </p>
       <div class="space-y-3">
-        @for (item of ['Multi-tenant workspaces with role-based access', 'Kanban boards with live drag-and-drop sync', 'AI task breakdown, assignee suggestions & summaries']; track item) {
+        @for (item of ['Multitenant workspaces with role based access', 'Kanban boards with live drag and drop sync', 'AI task breakdown, assignee suggestions & summaries']; track item) {
           <div class="flex items-start gap-2.5 text-sm text-forge-50">
             <mat-icon class="!text-base !w-4 !h-4 mt-0.5 text-accent-300">check_circle</mat-icon>
             <span>{{ item }}</span>
@@ -39,7 +43,11 @@
       <!-- Logo (mobile only, branded panel is hidden below lg) -->
       <div class="lg:hidden flex items-center gap-2 mb-8">
         <div class="w-9 h-9 rounded-lg bg-forge-600 flex items-center justify-center">
-          <mat-icon class="text-white">bolt</mat-icon>
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
+            <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
+            <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
+          </svg>
         </div>
         <span class="font-display font-semibold text-lg text-zinc-900">FlowForge</span>
       </div>
@@ -152,7 +160,7 @@
                 <mat-icon class="!text-sm !w-4 !h-4">
                   {{ rules.uppercase ? 'check_circle' : 'radio_button_unchecked' }}
                 </mat-icon>
-                One uppercase letter (A–Z)
+                One uppercase letter (A to Z)
               </div>
               <div class="flex items-center gap-2 text-xs"
                    [class.text-green-600]="rules.lowercase"
@@ -160,7 +168,7 @@
                 <mat-icon class="!text-sm !w-4 !h-4">
                   {{ rules.lowercase ? 'check_circle' : 'radio_button_unchecked' }}
                 </mat-icon>
-                One lowercase letter (a–z)
+                One lowercase letter (a to z)
               </div>
               <div class="flex items-center gap-2 text-xs"
                    [class.text-green-600]="rules.number"
@@ -168,7 +176,7 @@
                 <mat-icon class="!text-sm !w-4 !h-4">
                   {{ rules.number ? 'check_circle' : 'radio_button_unchecked' }}
                 </mat-icon>
-                One number (0–9)
+                One number (0 to 9)
               </div>
             </div>
           }

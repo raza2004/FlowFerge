@@ -35,7 +35,7 @@ import { AdminAuditLogDto } from '../../shared/models/admin.models';
               @for (log of logs(); track log.id) {
                 <tr class="hover:bg-zinc-50">
                   <td class="px-4 py-2.5 text-zinc-500 whitespace-nowrap">{{ log.createdAt | date:'MMM d, h:mm a' }}</td>
-                  <td class="px-4 py-2.5 text-zinc-900">{{ log.tenantName ?? '—' }}</td>
+                  <td class="px-4 py-2.5 text-zinc-900">{{ log.tenantName ?? 'N/A' }}</td>
                   <td class="px-4 py-2.5 text-zinc-600">{{ log.userName ?? 'System' }}</td>
                   <td class="px-4 py-2.5 font-mono text-xs text-admin-900">{{ log.action }}</td>
                   <td class="px-4 py-2.5 text-zinc-500">{{ log.entityType }}</td>

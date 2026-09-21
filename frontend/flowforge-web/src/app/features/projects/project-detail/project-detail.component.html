@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col">
+<div class="h-full flex flex-col px-8 py-10">
   <a routerLink="/projects" class="flex items-center gap-2 text-gray-600 mb-4 hover:text-gray-900">
     <mat-icon>arrow_back</mat-icon> Back to projects
   </a>
@@ -133,7 +133,7 @@
                 <mat-icon class="!text-base text-gray-400">bolt</mat-icon>
                 <div class="flex-1 min-w-0 text-sm">
                   <span class="font-medium text-gray-900">{{ rule.name }}</span>
-                  <span class="text-gray-500"> — when moved to </span>
+                  <span class="text-gray-500">: when moved to </span>
                   <span class="font-medium text-gray-700">{{ rule.triggerListName }}</span>
                   <span class="text-gray-500">, </span>
                   <span class="text-gray-700">{{ actionLabel(rule) }}</span>
