@@ -6,11 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { DashboardService } from '../../shared/services/dashboard.service';
 import { ProjectsService } from '../../shared/services/projects.service';
 import { DashboardStatsDto, MyTaskDto, ProjectSummaryDto } from '../../shared/models/project.models';
+import { CountUpDirective } from '../../shared/directives/count-up.directive';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, CountUpDirective],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {

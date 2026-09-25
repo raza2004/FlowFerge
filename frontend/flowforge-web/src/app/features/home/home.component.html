@@ -15,9 +15,9 @@
       </div>
 
       <nav class="hidden md:flex items-center gap-8 text-sm text-zinc-600">
-        <a href="#features" class="hover:text-zinc-900 transition-colors">Features</a>
-        <a href="#ai" class="hover:text-zinc-900 transition-colors">AI</a>
-        <a href="#faq" class="hover:text-zinc-900 transition-colors">FAQ</a>
+        <a href="#features" class="nav-link hover:text-zinc-900 transition-colors">Features</a>
+        <a href="#ai" class="nav-link hover:text-zinc-900 transition-colors">AI</a>
+        <a href="#faq" class="nav-link hover:text-zinc-900 transition-colors">FAQ</a>
       </nav>
 
       <div class="hidden md:flex items-center gap-3">
@@ -50,27 +50,33 @@
   </header>
 
   <!-- Hero -->
-  <section class="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-50 text-accent-700 text-xs font-mono uppercase tracking-widest mb-6">
+  <section class="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center overflow-hidden">
+    <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="aurora-blob aurora-blob--one"></div>
+      <div class="aurora-blob aurora-blob--two"></div>
+      <div class="aurora-blob aurora-blob--three"></div>
+    </div>
+
+    <div class="hero-anim inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-50 text-accent-700 text-xs font-mono uppercase tracking-widest mb-6">
       <mat-icon class="!text-sm !w-4 !h-4">auto_awesome</mat-icon>
       AI augmented · multitenant · realtime
     </div>
-    <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] mb-6">
+    <h1 class="hero-anim font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] mb-6">
       Project management,
       <span class="text-forge-600 italic">built like production software</span>
     </h1>
-    <p class="text-lg text-zinc-500 max-w-2xl mx-auto mb-10">
+    <p class="hero-anim text-lg text-zinc-500 max-w-2xl mx-auto mb-10">
       Workspaces, Kanban boards, automations, AI, and realtime collaboration, the platform
       Jira, Linear, and Monday.com trained your team to expect, engineered from the ground up
       with .NET 8 and Angular 18.
     </p>
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+    <div class="hero-anim flex flex-col sm:flex-row items-center justify-center gap-4">
       <a routerLink="/auth/register"
-         class="w-full sm:w-auto text-center bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 transition-colors">
+         class="w-full sm:w-auto text-center bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forge-600/20 transition-all">
         Create your workspace
       </a>
       <a routerLink="/auth/login"
-         class="w-full sm:w-auto text-center border border-zinc-200 text-zinc-700 font-medium px-8 py-3.5 rounded-lg hover:border-zinc-300 hover:bg-zinc-50 transition-colors">
+         class="w-full sm:w-auto text-center border border-zinc-200 text-zinc-700 font-medium px-8 py-3.5 rounded-lg hover:border-zinc-300 hover:bg-zinc-50 hover:-translate-y-0.5 transition-all">
         Sign in
       </a>
     </div>
@@ -84,7 +90,7 @@
       </p>
       <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
         @for (tech of techStack; track tech) {
-          <span class="text-sm font-medium text-zinc-500">{{ tech }}</span>
+          <span class="tech-item text-sm font-medium text-zinc-500">{{ tech }}</span>
         }
       </div>
     </div>
@@ -98,7 +104,7 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (feature of features; track feature.number) {
-        <div class="border border-zinc-200 rounded-xl p-6 hover:border-forge-300 transition-colors">
+        <div class="feature-card border border-zinc-200 rounded-xl p-6 hover:border-forge-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/60 transition-all duration-300">
           <div class="flex items-center justify-between mb-4">
             <span class="font-mono text-xs text-zinc-400">{{ feature.number }}</span>
             <div class="w-9 h-9 rounded-lg bg-forge-50 flex items-center justify-center">
@@ -127,7 +133,7 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @for (capability of aiCapabilities; track capability.title) {
-          <div class="border border-zinc-800 rounded-xl p-6 bg-zinc-900/50">
+          <div class="ai-card border border-zinc-800 rounded-xl p-6 bg-zinc-900/50 hover:border-accent-500/40 hover:-translate-y-1 hover:bg-zinc-900 transition-all duration-300">
             <div class="w-10 h-10 rounded-lg bg-accent-500/10 flex items-center justify-center mb-4">
               <mat-icon class="!text-lg !w-5 !h-5 text-accent-400">{{ capability.icon }}</mat-icon>
             </div>
@@ -142,7 +148,7 @@
   <!-- Split section -->
   <section class="grid grid-cols-1 md:grid-cols-2">
     <a routerLink="/auth/register"
-       class="group px-8 py-20 md:py-28 bg-forge-600 text-white flex flex-col justify-center hover:bg-forge-700 transition-colors">
+       class="split-panel group px-8 py-20 md:py-28 bg-forge-600 text-white flex flex-col justify-center hover:bg-forge-700 transition-colors">
       <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">groups</mat-icon>
       <h3 class="font-display text-2xl font-semibold mb-2">For your team</h3>
       <p class="text-forge-100 mb-4 max-w-sm">
@@ -154,7 +160,7 @@
       </span>
     </a>
     <a routerLink="/auth/register"
-       class="group px-8 py-20 md:py-28 bg-zinc-950 text-white flex flex-col justify-center hover:bg-zinc-900 transition-colors">
+       class="split-panel group px-8 py-20 md:py-28 bg-zinc-950 text-white flex flex-col justify-center hover:bg-zinc-900 transition-colors">
       <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">admin_panel_settings</mat-icon>
       <h3 class="font-display text-2xl font-semibold mb-2">For your organization</h3>
       <p class="text-zinc-400 mb-4 max-w-sm">
@@ -175,16 +181,18 @@
     </div>
     <div class="space-y-3">
       @for (faq of faqs(); track faq.question; let i = $index) {
-        <div class="border border-zinc-200 rounded-xl overflow-hidden">
+        <div class="faq-item border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 transition-colors">
           <button (click)="toggleFaq(i)"
                   class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors">
             <span class="font-medium text-zinc-900">{{ faq.question }}</span>
-            <mat-icon class="!text-lg text-zinc-400 flex-shrink-0 transition-transform"
+            <mat-icon class="!text-lg text-zinc-400 flex-shrink-0 transition-transform duration-300"
                       [class.rotate-180]="faq.open">expand_more</mat-icon>
           </button>
-          @if (faq.open) {
-            <p class="px-5 pb-4 text-sm text-zinc-500 leading-relaxed">{{ faq.answer }}</p>
-          }
+          <div class="faq-panel" [class.faq-panel--open]="faq.open">
+            <div>
+              <p class="px-5 pb-4 text-sm text-zinc-500 leading-relaxed">{{ faq.answer }}</p>
+            </div>
+          </div>
         </div>
       }
     </div>
@@ -192,7 +200,7 @@
 
   <!-- CTA band -->
   <section class="bg-zinc-50 border-y border-zinc-100">
-    <div class="max-w-3xl mx-auto px-6 py-20 text-center">
+    <div class="cta-content max-w-3xl mx-auto px-6 py-20 text-center">
       <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4">
         Ready to see it running?
       </h2>
@@ -200,7 +208,7 @@
         Create a workspace in under a minute. No credit card, no sales call.
       </p>
       <a routerLink="/auth/register"
-         class="inline-block bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 transition-colors">
+         class="inline-block bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forge-600/20 transition-all">
         Create your workspace
       </a>
     </div>

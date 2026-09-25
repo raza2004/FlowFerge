@@ -383,6 +383,109 @@ A few notes for engineers reviewing the stack.
 
 **JWT with refresh tokens** was chosen because pure JWT cannot be revoked. Refresh tokens enable proper logout, password reset, and session invalidation.
 
+## Personal Use — Command Cheat Sheet
+
+Every command needed to run, develop, and test FlowForge, in one place. Assumes you've already done the one-time setup in [Running FlowForge Locally](#running-flowforge-locally) (`.env` file + `dotnet user-secrets`).
+
+### Infra only (Postgres, Redis, RabbitMQ, MinIO, MailHog, Seq)
+
+```bash
+# from the repo root
+docker compose up -d postgres redis rabbitmq minio mailhog seq
+
+# check status
+docker compose ps
+
+# tail logs for one service
+docker compose logs -f postgres
+
+# stop (keeps data)
+docker compose down
+
+# stop and wipe all volumes (fresh database next start)
+docker compose down -v
+```
+
+### Everything in Docker (infra + API + Workers, no local .NET needed)
+
+```bash
+docker compose up -d          # builds and starts infra + api + workers
+docker compose up -d --build  # rebuild images after backend code changes
+docker compose logs -f api
+docker compose down
+```
+
+### Backend (run directly with the .NET SDK)
+
+```bash
+cd backend
+
+# build everything
+dotnet build
+
+# apply pending migrations
+dotnet ef database update \
+  --project src/FlowForge.Infrastructure/FlowForge.Infrastructure.csproj \
+  --startup-project src/FlowForge.API/FlowForge.API.csproj
+
+# create a new migration after changing an entity
+dotnet ef migrations add <MigrationName> \
+  --project src/FlowForge.Infrastructure/FlowForge.Infrastructure.csproj \
+  --startup-project src/FlowForge.API/FlowForge.API.csproj
+
+# run the API (http://localhost:5076, Swagger at /swagger)
+dotnet run --project src/FlowForge.API/FlowForge.API.csproj
+
+# run the background worker host
+dotnet run --project src/FlowForge.Workers/FlowForge.Workers.csproj
+
+# run all backend tests
+dotnet test tests/FlowForge.Domain.Tests
+dotnet test tests/FlowForge.Application.Tests
+dotnet test tests/FlowForge.API.IntegrationTests   # needs Docker running (Testcontainers)
+```
+
+### Frontend — main app (flowforge-web)
+
+```bash
+cd frontend/flowforge-web
+
+npm install              # or `npm ci` to install exactly from the lock file, like CI does
+ng serve                 # http://localhost:4200
+ng build --configuration production
+ng test
+```
+
+### Frontend — admin panel (flowforge-admin)
+
+```bash
+cd frontend/flowforge-admin
+
+npm install
+ng serve                 # http://localhost:4201 (port is set in angular.json)
+ng build --configuration production
+```
+
+### Fastest daily workflow
+
+Four terminals, in order:
+
+```bash
+# 1) infra
+docker compose up -d postgres redis rabbitmq minio mailhog seq
+
+# 2) backend API
+cd backend && dotnet run --project src/FlowForge.API/FlowForge.API.csproj
+
+# 3) main app
+cd frontend/flowforge-web && ng serve
+
+# 4) admin panel (only when you need it)
+cd frontend/flowforge-admin && ng serve
+```
+
+Then open http://localhost:4200 (main app) and http://localhost:4201 (admin panel — first registered account becomes system admin automatically).
+
 ## License
 
 MIT

@@ -1,7 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, AfterViewInit, OnDestroy, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
 
 interface FaqItem {
   question: string;
@@ -13,9 +16,14 @@ interface FaqItem {
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterLink, MatIconModule],
-  templateUrl: './home.component.html'
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit, OnDestroy {
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private lenis?: Lenis;
+  private lenisTick = (time: number) => this.lenis?.raf(time * 1000);
+
   mobileMenuOpen = signal(false);
 
   features = [
@@ -105,5 +113,49 @@ export class HomeComponent {
   toggleFaq(index: number) {
     this.faqs.update(list =>
       list.map((item, i) => i === index ? { ...item, open: !item.open } : item));
+  }
+
+  ngAfterViewInit() {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+    const root = this.host.nativeElement;
+    const q = (selector: string) => Array.from(root.querySelectorAll<HTMLElement>(selector));
+
+    gsap.timeline({ defaults: { ease: 'power3.out', duration: 0.8 } })
+      .from(q('.hero-anim'), { opacity: 0, y: 24, stagger: 0.15 });
+
+    const reveal = (selector: string, vars: gsap.TweenVars = {}) => {
+      const elements = q(selector);
+      if (!elements.length) return;
+      gsap.from(elements, {
+        opacity: 0,
+        y: 28,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: elements[0].closest('section') ?? elements[0], start: 'top 85%' },
+        ...vars
+      });
+    };
+
+    reveal('.tech-item', { y: 10, stagger: 0.04 });
+    reveal('.feature-card');
+    reveal('.ai-card');
+    reveal('.split-panel', { y: 40, stagger: 0.15 });
+    reveal('.faq-item');
+    reveal('.cta-content', { y: 20 });
+
+    this.lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    this.lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(this.lenisTick);
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  ngOnDestroy() {
+    gsap.ticker.remove(this.lenisTick);
+    this.lenis?.destroy();
+    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
   }
 }
