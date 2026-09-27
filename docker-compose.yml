@@ -101,6 +101,9 @@ services:
       Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env - copy .env.example to get started, at least 32 chars}
       Jwt__Issuer: ${JWT_ISSUER:-FlowForge}
       Jwt__Audience: ${JWT_AUDIENCE:-FlowForgeUsers}
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-}
+      OpenAI__Model: ${OPENAI_MODEL:-google/gemma-4-31b-it:free}
+      OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
     ports:
       - "5076:8080"
     depends_on:

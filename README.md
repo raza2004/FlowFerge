@@ -63,7 +63,7 @@ The goal is to provide an engineering team a reference point that says "this per
 | AutoMapper | Object to object mapping |
 | Hangfire | Background job orchestration |
 | MinIO | S3 compatible file storage |
-| OpenAI SDK | AI integration (GPT 4o) |
+| OpenAI SDK | AI integration - works against real OpenAI or any OpenAI-compatible free provider (OpenRouter, Groq, etc.) |
 | Serilog | Structured logging |
 | OpenTelemetry | Distributed tracing |
 | Polly | Resilience and retry logic |
@@ -231,8 +231,25 @@ dotnet user-secrets set "RabbitMQ:Username" "<your RABBITMQ_USER from .env>"
 dotnet user-secrets set "RabbitMQ:Password" "<your RABBITMQ_PASSWORD from .env>"
 dotnet user-secrets set "MinIO:AccessKey" "<your MINIO_ROOT_USER from .env>"
 dotnet user-secrets set "MinIO:SecretKey" "<your MINIO_ROOT_PASSWORD from .env>"
-dotnet user-secrets set "OpenAI:ApiKey" "your-openai-api-key-here"
+
+# AI features (task breakdown, assignee suggestion, project summaries) use the official
+# OpenAI .NET SDK, which also works against any OpenAI-compatible Chat Completions API.
+# OpenAI:BaseUrl is optional - leave it unset to use real OpenAI, or point it at a free
+# provider (get a key from https://openrouter.ai/keys). OpenRouter's free model catalog
+# rotates - check https://openrouter.ai/models?max_price=0 for what's currently free
+# before picking one, since a slug that was free last month can quietly stop being free.
+dotnet user-secrets set "OpenAI:ApiKey" "your-openrouter-or-openai-api-key-here"
+dotnet user-secrets set "OpenAI:Model" "google/gemma-4-31b-it:free"
+dotnet user-secrets set "OpenAI:BaseUrl" "https://openrouter.ai/api/v1"
 ```
+
+**If a free model's daily quota runs out**, switch to a different currently-free one from
+the link above without touching code:
+```bash
+dotnet user-secrets set "OpenAI:Model" "nvidia/nemotron-3-super-120b-a12b:free"
+```
+Or point at a different OpenAI-compatible provider entirely (e.g. Groq, which has its own
+separate free quota) by changing `OpenAI:BaseUrl` and `OpenAI:ApiKey` together.
 
 ### Step 4 Apply Database Migrations
 

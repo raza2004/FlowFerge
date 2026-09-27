@@ -1,17 +1,22 @@
+using System.ClientModel;
 using System.Text.Json;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Shared.Results;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OpenAI;
 using OpenAI.Chat;
 
 namespace FlowForge.Infrastructure.Services.AI;
 
 /// <summary>
-/// IAiService backed by the OpenAI SDK. Every public method fails gracefully (via Result)
-/// rather than throwing when there's no API key configured, the request errors out, or
-/// the model's response can't be parsed - AI is a feature the app degrades without, not
-/// a hard dependency the app crashes without.
+/// IAiService backed by the official OpenAI .NET SDK, which also happens to work against
+/// any OpenAI-compatible Chat Completions API - so this same client talks to real OpenAI,
+/// OpenRouter, Groq, or Google's OpenAI-compatible Gemini endpoint depending on what
+/// OpenAI:BaseUrl / OpenAI:ApiKey / OpenAI:Model are set to. Every public method fails
+/// gracefully (via Result) rather than throwing when there's no API key configured, the
+/// request errors out, or the model's response can't be parsed - AI is a feature the app
+/// degrades without, not a hard dependency the app crashes without.
 /// </summary>
 public class OpenAiService : IAiService
 {
@@ -149,13 +154,20 @@ public class OpenAiService : IAiService
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return Result.Failure<ChatClient>(Error.Failure("AI.NotConfigured",
-                "OpenAI API key is not configured. Set OpenAI:ApiKey in appsettings (or the OpenAI__ApiKey environment variable) to enable AI features."));
+                "AI API key is not configured. Set OpenAI:ApiKey (and, for a non-OpenAI provider, OpenAI:BaseUrl) in appsettings or user-secrets to enable AI features."));
         }
 
         var model = _config["OpenAI:Model"];
         model = string.IsNullOrWhiteSpace(model) ? "gpt-4o-mini" : model;
 
-        return Result.Success(new ChatClient(model, apiKey));
+        var baseUrl = _config["OpenAI:BaseUrl"];
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return Result.Success(new ChatClient(model, apiKey));
+        }
+
+        var options = new OpenAIClientOptions { Endpoint = new Uri(baseUrl) };
+        return Result.Success(new ChatClient(model, new ApiKeyCredential(apiKey), options));
     }
 
     private async Task<Result<string>> CompleteJsonAsync(ChatClient client, string systemPrompt, string userPrompt, CancellationToken ct)
