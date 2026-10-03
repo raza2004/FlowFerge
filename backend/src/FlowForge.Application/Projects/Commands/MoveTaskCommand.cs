@@ -36,9 +36,29 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, Result>
         if (targetList == null)
             return Result.Failure(Error.NotFound("BoardList.NotFound", "Target list not found"));
 
-        var moveResult = task.MoveTo(request.NewListId, request.NewPosition,
+        var sourceListId = task.ListId;
+        var targetSiblings = targetList.Tasks.Where(t => t.Id != task.Id)
+            .OrderBy(t => t.Position).ThenBy(t => t.CreatedAt).ToList();
+        var newPosition = Math.Clamp(request.NewPosition, 0, targetSiblings.Count);
+
+        var moveResult = task.MoveTo(request.NewListId, newPosition,
             _currentUser.UserId.Value, _currentUser.TenantId.Value);
         if (moveResult.IsFailure) return moveResult;
+
+        // Renumber both affected lists 0..n so positions never collide - otherwise two cards can
+        // share a position and the order you dragged them into isn't the order you get back.
+        targetSiblings.Insert(newPosition, task);
+        for (var i = 0; i < targetSiblings.Count; i++)
+            targetSiblings[i].SetPosition(i);
+
+        if (sourceListId != targetList.Id)
+        {
+            var sourceList = board!.Lists.FirstOrDefault(l => l.Id == sourceListId);
+            var remaining = sourceList?.Tasks.Where(t => t.Id != task.Id)
+                .OrderBy(t => t.Position).ThenBy(t => t.CreatedAt).ToList() ?? new();
+            for (var i = 0; i < remaining.Count; i++)
+                remaining[i].SetPosition(i);
+        }
 
         // Keep the free-text Status (and CompletedAt / dashboard stats) in sync with
         // whichever list the task now sits in, driven by the list's IsDoneColumn flag
@@ -47,7 +67,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, Result>
             _currentUser.UserId.Value, _currentUser.TenantId.Value);
         if (statusResult.IsFailure) return statusResult;
 
-        _uow.Tasks.Update(task);
         await _uow.SaveChangesAsync(ct);
 
         return Result.Success();

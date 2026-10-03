@@ -74,6 +74,11 @@ export class InboxComponent implements OnInit {
   }
 
   icon(type: NotificationType): string {
-    return type === NotificationType.TaskAssigned ? 'assignment_ind' : 'bolt';
+    switch (type) {
+      case NotificationType.TaskAssigned: return 'assignment_ind';
+      case NotificationType.Mentioned: return 'alternate_email';
+      case NotificationType.CommentAdded: return 'chat_bubble_outline';
+      default: return 'bolt';
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +27,7 @@ interface AuthError {
 export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
@@ -47,12 +48,18 @@ export class LoginComponent {
       email: this.form.value.email!,
       password: this.form.value.password!
     }).subscribe({
-      next: () => this.router.navigate(['/projects']),
+      next: () => this.router.navigateByUrl(this.safeReturnUrl() ?? '/projects'),
       error: (err: HttpErrorResponse) => {
         this.authError.set(this.parseError(err));
         this.isLoading = false;
       }
     });
+  }
+
+  /** Only same-app paths are honored, so a crafted ?returnUrl=https://evil.example can't redirect off-site. */
+  private safeReturnUrl(): string | null {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl');
+    return url && url.startsWith('/') && !url.startsWith('//') ? url : null;
   }
 
   dismissError() {

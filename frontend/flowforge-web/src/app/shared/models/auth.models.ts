@@ -43,6 +43,36 @@ export interface TenantInfo {
   slackWebhookUrl: string | null;
 }
 
+export interface InvitationDto {
+  id: string;
+  email: string;
+  role: string;
+  invitedByName: string;
+  createdAt: string;
+  expiresAt: string;
+  inviteUrl: string;
+}
+
+export interface InvitationPreviewDto {
+  tenantName: string;
+  email: string;
+  role: string;
+  invitedByName: string;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  accountExists: boolean;
+}
+
+export interface WorkspaceDto {
+  tenantId: string;
+  name: string;
+  slug: string;
+  role: string;
+  isCurrent: boolean;
+}
+
+/** Highest privilege first; mirrors FlowForge.Domain.Identity.Enums.MembershipRole. */
+export const MEMBERSHIP_ROLES = ['Owner', 'Admin', 'Manager', 'Member', 'Guest'] as const;
+
 export interface TenantMemberDto {
   userId: string;
   fullName: string;

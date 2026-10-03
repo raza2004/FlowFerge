@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsRealtimeService } from '../../core/services/notifications-realtime.service';
 import { NotificationsService } from '../../shared/services/notifications.service';
+import { WorkspaceDto } from '../../shared/models/auth.models';
 
 interface NavIndicator {
   top: number;
@@ -37,6 +38,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   primaryIndicator = signal<NavIndicator>({ top: 0, height: 0, visible: false });
   workspaceIndicator = signal<NavIndicator>({ top: 0, height: 0, visible: false });
   badgeBump = signal(false);
+  workspaces = signal<WorkspaceDto[]>([]);
+  switching = signal(false);
 
   primaryNav = [
     { path: '/inbox',     label: 'Inbox',     icon: 'inbox' },
@@ -109,6 +112,20 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   private measure(items: QueryList<ElementRef<HTMLElement>> | undefined, index: number, target: ReturnType<typeof signal<NavIndicator>>) {
     const el = items?.toArray()[index]?.nativeElement;
     if (el) target.set({ top: el.offsetTop, height: el.offsetHeight, visible: true });
+  }
+
+  loadWorkspaces() {
+    this.auth.getWorkspaces().subscribe(list => this.workspaces.set(list));
+  }
+
+  switchWorkspace(tenantId: string, isCurrent: boolean) {
+    if (isCurrent) return;
+    this.switching.set(true);
+    this.auth.switchWorkspace(tenantId).subscribe({
+      // Full reload so realtime connections, caches, and every page start fresh in the new workspace.
+      next: () => window.location.assign('/dashboard'),
+      error: () => this.switching.set(false)
+    });
   }
 
   logout() { this.auth.logout(); }

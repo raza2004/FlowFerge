@@ -13,7 +13,10 @@ public class BoardRepository : IBoardRepository
         _ctx.Boards.FirstOrDefaultAsync(b => b.Id == id, ct);
 
     public Task<Board?> GetByIdWithListsAsync(Guid id, CancellationToken ct = default) =>
-        _ctx.Boards.Include(b => b.Lists).ThenInclude(l => l.Tasks).FirstOrDefaultAsync(b => b.Id == id, ct);
+        _ctx.Boards
+            .Include(b => b.Lists).ThenInclude(l => l.Tasks).ThenInclude(t => t.Labels)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(b => b.Id == id, ct);
 
     public async Task<IEnumerable<Board>> GetByProjectAsync(Guid projectId, CancellationToken ct = default) =>
         await _ctx.Boards.Where(b => b.ProjectId == projectId).OrderBy(b => b.Position).ToListAsync(ct);
@@ -22,4 +25,10 @@ public class BoardRepository : IBoardRepository
         await _ctx.Boards.AddAsync(board, ct);
 
     public void Update(Board board) => _ctx.Boards.Update(board);
+
+    public Task<BoardList?> GetListByIdAsync(Guid listId, CancellationToken ct = default) =>
+        _ctx.BoardLists.Include(l => l.Tasks).FirstOrDefaultAsync(l => l.Id == listId, ct);
+
+    public async Task AddListAsync(BoardList list, CancellationToken ct = default) =>
+        await _ctx.BoardLists.AddAsync(list, ct);
 }

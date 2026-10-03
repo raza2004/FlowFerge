@@ -1,4 +1,6 @@
 using FlowForge.API.Common;
+using FlowForge.Application.Identity.Commands;
+using FlowForge.Application.Identity.DTOs;
 using FlowForge.Application.Identity.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +27,34 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Members()
     {
         var result = await _mediator.Send(new GetTenantMembersQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpPut("members/{userId:guid}/role")]
+    public async Task<IActionResult> ChangeRole(Guid userId, [FromBody] ChangeMemberRoleRequest body)
+    {
+        var result = await _mediator.Send(new ChangeMemberRoleCommand(userId, body.Role));
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("members/{userId:guid}")]
+    public async Task<IActionResult> RemoveMember(Guid userId)
+    {
+        var result = await _mediator.Send(new RemoveMemberCommand(userId));
+        return result.ToActionResult();
+    }
+
+    [HttpGet("workspaces")]
+    public async Task<IActionResult> Workspaces()
+    {
+        var result = await _mediator.Send(new GetMyWorkspacesQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpPost("workspaces/switch")]
+    public async Task<IActionResult> SwitchWorkspace([FromBody] SwitchWorkspaceRequest body)
+    {
+        var result = await _mediator.Send(new SwitchWorkspaceCommand(body.TenantId, body.RefreshToken));
         return result.ToActionResult();
     }
 }

@@ -19,6 +19,7 @@ public class TaskRepository : ITaskRepository
             .Include(t => t.Labels)
             .Include(t => t.Watchers)
             .Include(t => t.Subtasks)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id, ct);
 
     public async Task<IEnumerable<ProjectTask>> GetByProjectAsync(Guid projectId, CancellationToken ct = default) =>
@@ -51,4 +52,24 @@ public class TaskRepository : ITaskRepository
         await _ctx.Tasks.AddAsync(task, ct);
 
     public void Update(ProjectTask task) => _ctx.Tasks.Update(task);
+
+    public async Task<IEnumerable<TimeEntry>> GetTimeEntriesAsync(Guid taskId, CancellationToken ct = default) =>
+        await _ctx.TimeEntries.Where(e => e.TaskId == taskId)
+            .OrderByDescending(e => e.WorkDate).ThenByDescending(e => e.CreatedAt).ToListAsync(ct);
+
+    public Task<TimeEntry?> GetTimeEntryByIdAsync(Guid id, CancellationToken ct = default) =>
+        _ctx.TimeEntries.FirstOrDefaultAsync(e => e.Id == id, ct);
+
+    public async Task AddTimeEntryAsync(TimeEntry entry, CancellationToken ct = default) =>
+        await _ctx.TimeEntries.AddAsync(entry, ct);
+
+    public void RemoveTimeEntry(TimeEntry entry) => _ctx.TimeEntries.Remove(entry);
+
+    public Task<TaskAttachment?> GetAttachmentByIdAsync(Guid id, CancellationToken ct = default) =>
+        _ctx.TaskAttachments.FirstOrDefaultAsync(a => a.Id == id, ct);
+
+    public async Task AddAttachmentAsync(TaskAttachment attachment, CancellationToken ct = default) =>
+        await _ctx.TaskAttachments.AddAsync(attachment, ct);
+
+    public void RemoveAttachment(TaskAttachment attachment) => _ctx.TaskAttachments.Remove(attachment);
 }

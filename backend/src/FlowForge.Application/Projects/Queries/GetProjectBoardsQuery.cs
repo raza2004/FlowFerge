@@ -1,5 +1,6 @@
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Projects.DTOs;
+using FlowForge.Application.Projects.Mapping;
 using FlowForge.Domain.Common;
 using FlowForge.Shared.Results;
 using MediatR;
@@ -36,19 +37,8 @@ public class GetProjectBoardsQueryHandler : IRequestHandler<GetProjectBoardsQuer
             var full = await _uow.Boards.GetByIdWithListsAsync(b.Id, ct);
             if (full == null) continue;
 
-            result.Add(new BoardDto(
-                full.Id, full.Name, full.Description, full.Type.ToString(),
-                full.Lists.OrderBy(l => l.Position).Select(l => new BoardListDto(
-                    l.Id, l.Name, l.Color, l.Position, l.WipLimit,
-                    l.Tasks.OrderBy(t => t.Position).Select(t => new TaskCardDto(
-                        t.Id, t.TaskNumber, t.Title,
-                        t.Type.ToString(), t.Priority.ToString(),
-                        t.AssigneeId, null,
-                        t.DueDate, t.IsOverdue,
-                        t.Position, t.CommentCount
-                    )).ToList()
-                )).ToList()
-            ));
+            var lists = await TaskCardMapper.MapListsAsync(full, _uow, ct);
+            result.Add(new BoardDto(full.Id, full.Name, full.Description, full.Type.ToString(), lists));
         }
 
         return Result.Success(result);

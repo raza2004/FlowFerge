@@ -1,0 +1,138 @@
+<div class="max-w-5xl mx-auto px-8 py-10">
+  <div class="flex items-start justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-display font-semibold text-zinc-900">Team</h1>
+      <p class="text-zinc-500 mt-1">{{ members().length }} {{ members().length === 1 ? 'member' : 'members' }} in this workspace</p>
+    </div>
+    @if (canManage()) {
+      <button mat-raised-button color="primary" (click)="inviteOpen.set(!inviteOpen()); lastInvite.set(null)">
+        <mat-icon>person_add</mat-icon> Invite people
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 flex items-start gap-2 text-sm text-red-700">
+      <mat-icon class="!text-base text-red-600">error_outline</mat-icon>
+      <span class="flex-1">{{ error() }}</span>
+      <button class="text-red-400 hover:text-red-600" (click)="error.set(null)"><mat-icon class="!text-base">close</mat-icon></button>
+    </div>
+  }
+
+  <!-- Invite panel -->
+  @if (inviteOpen() && canManage()) {
+    <div class="mb-6 bg-white rounded-xl border border-forge-200 p-5">
+      <h2 class="font-semibold text-zinc-900 mb-1">Invite a teammate</h2>
+      <p class="text-sm text-zinc-500 mb-4">They'll get an email with a link to join. You can also copy the link and send it yourself.</p>
+      <form class="flex flex-col sm:flex-row gap-3" (ngSubmit)="sendInvite()">
+        <input type="email" name="email" [(ngModel)]="inviteEmail" required placeholder="name@company.com"
+               class="flex-1 text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:border-forge-400 focus:outline-none">
+        <select name="role" [(ngModel)]="inviteRole"
+                class="text-sm border border-zinc-200 rounded-lg px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
+          @for (r of assignableRoles(); track r) { <option [value]="r">{{ r }}</option> }
+        </select>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!inviteEmail.trim() || inviting()">
+          {{ inviting() ? 'Sending...' : 'Send invite' }}
+        </button>
+      </form>
+
+      @if (lastInvite(); as inv) {
+        <div class="mt-4 rounded-lg bg-accent-50 border border-accent-200 p-3 text-sm">
+          <div class="flex items-center gap-2 text-accent-800 font-medium mb-2">
+            <mat-icon class="!text-base">check_circle</mat-icon> Invitation sent to {{ inv.email }}
+          </div>
+          <div class="flex items-center gap-2">
+            <input readonly [value]="inv.inviteUrl" (focus)="$any($event.target).select()"
+                   class="flex-1 min-w-0 text-xs font-mono bg-white border border-accent-200 rounded px-2 py-1.5 text-zinc-600">
+            <button mat-stroked-button (click)="copyLink(inv)">
+              {{ copiedId() === inv.id ? 'Copied' : 'Copy link' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Members -->
+  <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+    @if (loading()) {
+      <div class="divide-y divide-zinc-100">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="flex items-center gap-4 px-6 py-4">
+            <div class="w-10 h-10 rounded-full bg-zinc-200 animate-pulse"></div>
+            <div class="flex-1 space-y-1.5">
+              <div class="h-3 w-40 rounded bg-zinc-200 animate-pulse"></div>
+              <div class="h-2.5 w-56 rounded bg-zinc-100 animate-pulse"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="divide-y divide-zinc-100">
+        @for (m of members(); track m.userId) {
+          <div class="flex items-center gap-4 px-6 py-4">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {{ initials(m.fullName) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-zinc-900 truncate">
+                {{ m.fullName }}
+                @if (m.userId === currentUserId) { <span class="text-xs text-zinc-400 font-normal">(you)</span> }
+              </div>
+              <div class="text-xs text-zinc-500 truncate">{{ m.email }}</div>
+            </div>
+
+            @if (canManageMember(m)) {
+              <select class="text-xs border border-zinc-200 rounded-md px-2 py-1 bg-white focus:border-forge-400 focus:outline-none"
+                      (change)="changeRole(m, $any($event.target))">
+                @for (r of assignableRoles(); track r) {
+                  <option [value]="r" [selected]="r === m.role">{{ r }}</option>
+                }
+              </select>
+            } @else {
+              <span class="text-xs px-2.5 py-1 rounded-md font-medium"
+                    [class]="m.role === 'Owner' ? 'bg-forge-50 text-forge-700' : 'bg-zinc-100 text-zinc-700'">{{ m.role }}</span>
+            }
+
+            <span class="hidden sm:inline text-xs text-zinc-500 w-24 text-right">Joined {{ m.joinedAt | date:'MMM y' }}</span>
+
+            <div class="w-24 flex justify-end">
+              @if (canManageMember(m)) {
+                @if (confirmRemoveId() === m.userId) {
+                  <button class="text-xs text-zinc-500 hover:text-zinc-800 mr-2" (click)="confirmRemoveId.set(null)">Cancel</button>
+                  <button class="text-xs font-medium text-red-600 hover:text-red-700" (click)="remove(m)">Remove</button>
+                } @else {
+                  <button mat-icon-button matTooltip="Remove from workspace" (click)="confirmRemoveId.set(m.userId)">
+                    <mat-icon class="!text-lg text-zinc-400">person_remove</mat-icon>
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Pending invitations -->
+  @if (canManage() && invitations().length > 0) {
+    <h2 class="text-sm font-semibold text-zinc-900 mt-8 mb-3">Pending invitations</h2>
+    <div class="bg-white rounded-xl border border-zinc-200 divide-y divide-zinc-100">
+      @for (inv of invitations(); track inv.id) {
+        <div class="flex items-center gap-4 px-6 py-3">
+          <div class="w-9 h-9 rounded-full border-2 border-dashed border-zinc-300 flex items-center justify-center flex-shrink-0">
+            <mat-icon class="!text-base text-zinc-400">mail_outline</mat-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm text-zinc-900 truncate">{{ inv.email }}</div>
+            <div class="text-xs text-zinc-500">
+              Invited as {{ inv.role }} by {{ inv.invitedByName }} · expires {{ inv.expiresAt | date:'MMM d' }}
+            </div>
+          </div>
+          <button mat-button (click)="copyLink(inv)">{{ copiedId() === inv.id ? 'Copied' : 'Copy link' }}</button>
+          <button mat-button class="!text-red-600" (click)="revoke(inv)">Revoke</button>
+        </div>
+      }
+    </div>
+  }
+</div>

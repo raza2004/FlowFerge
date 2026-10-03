@@ -53,9 +53,41 @@ public record MembershipDto(
 
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
-public record InviteUserRequest(string Email, string FirstName, string LastName, string Role);
+public record CreateInvitationRequest(string Email, string Role);
 
-public record AcceptInvitationRequest(string Token, string Password);
+public record RegisterWithInvitationRequest(string FirstName, string LastName, string Password);
+
+public record SwitchWorkspaceRequest(Guid TenantId, string? RefreshToken);
+
+public record ChangeMemberRoleRequest(string Role);
+
+public record InvitationDto(
+    Guid Id,
+    string Email,
+    string Role,
+    string InvitedByName,
+    DateTime CreatedAt,
+    DateTime ExpiresAt,
+    string InviteUrl
+);
+
+/// <summary>What someone opening an invite link sees, before they're logged in.</summary>
+public record InvitationPreviewDto(
+    string TenantName,
+    string Email,
+    string Role,
+    string InvitedByName,
+    string Status,
+    bool AccountExists
+);
+
+public record WorkspaceDto(
+    Guid TenantId,
+    string Name,
+    string Slug,
+    string Role,
+    bool IsCurrent
+);
 
 public record TenantMemberDto(
     Guid UserId,

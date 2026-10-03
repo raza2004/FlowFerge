@@ -181,6 +181,21 @@ public sealed class ProjectTask : SoftDeletableEntity
         return Result.Success();
     }
 
+    /// <summary>Reverses a previous LogTime when its time entry is deleted.</summary>
+    public void RemoveLoggedTime(double hours)
+    {
+        var remaining = (ActualHours ?? 0) - hours;
+        ActualHours = remaining > 0.0001 ? remaining : null;
+        Touch();
+    }
+
+    /// <summary>Sets the card's order within its current list (no event - it's not a move between lists).</summary>
+    public void SetPosition(int position)
+    {
+        Position = position;
+        Touch();
+    }
+
     public Result AddLabel(Guid labelId)
     {
         if (_labels.Any(l => l.LabelId == labelId))
@@ -206,6 +221,16 @@ public sealed class ProjectTask : SoftDeletableEntity
             return Result.Success();
 
         _watchers.Add(new TaskWatcher { TaskId = Id, UserId = userId });
+        Touch();
+        return Result.Success();
+    }
+
+    public Result RemoveWatcher(Guid userId)
+    {
+        var watcher = _watchers.FirstOrDefault(w => w.UserId == userId);
+        if (watcher == null) return Result.Success();
+
+        _watchers.Remove(watcher);
         Touch();
         return Result.Success();
     }

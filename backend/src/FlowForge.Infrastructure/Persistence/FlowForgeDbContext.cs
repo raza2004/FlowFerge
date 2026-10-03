@@ -30,6 +30,7 @@ public class FlowForgeDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
 
     // Projects
     public DbSet<Project> Projects => Set<Project>();
@@ -43,6 +44,7 @@ public class FlowForgeDbContext : DbContext
     public DbSet<TaskWatcher> TaskWatchers => Set<TaskWatcher>();
     public DbSet<Label> Labels => Set<Label>();
     public DbSet<Sprint> Sprints => Set<Sprint>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
     // Workflows
     public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();

@@ -358,6 +358,7 @@ The same three steps run in CI on every push via `.github/workflows/ci.yml`, alo
 | Authentication flow | Complete (JWT + refresh tokens, account lockout, suspension) |
 | Multi-tenancy | Complete |
 | Projects, Boards, Tasks | Complete (Kanban board, drag-and-drop, real-time sync via SignalR) |
+| Task detail | Complete (edit all fields, delete, labels, watchers, subtasks, comments with @mentions that notify) |
 | Workflows & automations | Complete ("when task moves to list X, notify/assign user Y") |
 | AI integration | Complete (task breakdown, assignee suggestion, project summaries via OpenAI) |
 | Notifications | Complete (real-time via SignalR, email via SMTP, Slack via incoming webhook) |
@@ -365,22 +366,28 @@ The same three steps run in CI on every push via `.github/workflows/ci.yml`, alo
 | Admin panel | Complete (separate Angular app: tenants, users, audit logs, system stats) |
 | Audit logging | Complete (every command logged automatically via a MediatR pipeline behavior) |
 | Tests | Complete (xUnit unit tests for Domain/Application, TestContainers-backed API integration tests) |
-| CI/CD pipeline | Complete (GitHub Actions: backend tests, integration tests, both frontend builds) |
+| CI/CD pipeline | Built (GitHub Actions: backend tests, integration tests, both frontend builds), automatic triggers paused during development, run manually from the Actions tab |
+| Message bus | Complete (email/Slack notification delivery queued on RabbitMQ via MassTransit, consumed by FlowForge.Workers) |
 | Docker / deployment | `docker compose up` runs the entire stack (infra + API + Workers) with migrations applied automatically on startup |
 
 ### Known gaps
 
-A few packages referenced in the tech stack are not yet wired into the running app -
-listed here rather than left to be discovered:
+Listed here rather than left to be discovered. Several of these already have database
+tables (scaffolded in the Domain layer), but no commands, endpoints, or UI on top yet.
 
-- **Redis** runs in Docker but nothing reads/writes to it yet (no caching or session
-  storage is implemented against it).
-- **RabbitMQ / MassTransit** runs in Docker but there is no publisher or consumer wired
-  up - all current cross-feature communication (automations, notifications) goes through
-  in-process MediatR domain events, not the message bus.
-- **MinIO** runs in Docker but there is no file upload/attachment feature calling it yet.
-- **FlowForge.Workers** is a running background service host but has no actual jobs
-  scheduled in it yet (no Hangfire recurring jobs).
+**Features**
+- **Sprints**: planning, backlog, burndown charts, and retrospectives (table exists, nothing above it).
+- **Attachments**: table exists, but there's no upload endpoint and **MinIO** is not called yet.
+- **Time tracking**: estimates and story points can be set, but there's no "log time" UI or endpoint.
+- **Team invitations**: there's no way to invite another user into an existing workspace yet.
+- **Board management**: each project gets one auto-created Kanban board; you can't add boards
+  or lists, set WIP limits, or use Scrum boards yet.
+- **AI blocker detection** and **admin feature flags** are not started.
+
+**Infrastructure**
+- **Redis** runs in Docker but nothing reads/writes to it yet (no caching or session storage).
+- **Hangfire**: FlowForge.Workers consumes RabbitMQ messages, but has no scheduled/recurring jobs.
+- **Rate limiting**, **Serilog** structured logging, and **OpenTelemetry** tracing are not configured.
 - Deployment has been built and tested locally via Docker Compose; it has not been
   deployed to Railway (or any other host) yet.
 

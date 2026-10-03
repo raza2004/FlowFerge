@@ -10,6 +10,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
   },
 
+  // Public on purpose: the person opening an invite link may not have an account yet.
+  {
+    path: 'invite/:token',
+    loadComponent: () => import('./features/invite/invite.component').then(m => m.InviteComponent)
+  },
+
   {
     path: 'auth',
     children: [

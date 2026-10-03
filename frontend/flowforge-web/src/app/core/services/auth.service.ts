@@ -1,10 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { finalize, shareReplay, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, UserInfo, TenantInfo } from '../../shared/models/auth.models';
+import {
+  AuthResponse, LoginRequest, RegisterRequest, UserInfo, TenantInfo,
+  InvitationPreviewDto, WorkspaceDto
+} from '../../shared/models/auth.models';
 
 const ACCESS_TOKEN_KEY  = 'ff_access_token';
 const REFRESH_TOKEN_KEY = 'ff_refresh_token';
@@ -35,17 +38,70 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearSession();
+    this.router.navigate(['/auth/login']);
+  }
+
+  /** Forgets the session locally without navigating anywhere (e.g. "sign out and accept as someone else"). */
+  clearSession(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TENANT_KEY);
     this.user.set(null);
     this.tenant.set(null);
-    this.router.navigate(['/auth/login']);
   }
 
   getAccessToken(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  }
+
+  private refreshInFlight$: Observable<AuthResponse> | null = null;
+
+  /**
+   * Exchanges the refresh token for a new session. Concurrent callers share one request:
+   * refresh tokens are single-use, so two parallel refreshes would make the second fail.
+   */
+  refreshSession(): Observable<AuthResponse> {
+    if (!this.refreshInFlight$) {
+      this.refreshInFlight$ = this.http
+        .post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, { refreshToken: this.getRefreshToken() })
+        .pipe(
+          tap(res => this.storeSession(res)),
+          finalize(() => this.refreshInFlight$ = null),
+          shareReplay(1)
+        );
+    }
+    return this.refreshInFlight$;
+  }
+
+  getWorkspaces(): Observable<WorkspaceDto[]> {
+    return this.http.get<WorkspaceDto[]>(`${environment.apiUrl}/users/workspaces`);
+  }
+
+  switchWorkspace(tenantId: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/users/workspaces/switch`, {
+      tenantId, refreshToken: this.getRefreshToken()
+    }).pipe(tap(res => this.storeSession(res)));
+  }
+
+  getInvitationPreview(token: string): Observable<InvitationPreviewDto> {
+    return this.http.get<InvitationPreviewDto>(`${environment.apiUrl}/invitations/by-token/${encodeURIComponent(token)}`);
+  }
+
+  acceptInvitation(token: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/invitations/by-token/${encodeURIComponent(token)}/accept`, null)
+      .pipe(tap(res => this.storeSession(res)));
+  }
+
+  registerWithInvitation(token: string, firstName: string, lastName: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/invitations/by-token/${encodeURIComponent(token)}/register`, {
+      firstName, lastName, password
+    }).pipe(tap(res => this.storeSession(res)));
   }
 
   /** Applies a partial update (e.g. a saved preference) to the stored user, keeping the signal and localStorage in sync. */

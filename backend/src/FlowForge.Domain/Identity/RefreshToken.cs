@@ -6,6 +6,10 @@ namespace FlowForge.Domain.Identity;
 public sealed class RefreshToken : Entity
 {
     public Guid UserId { get; private set; }
+
+    /// <summary>The workspace this session is scoped to, so refreshing keeps you where you were.</summary>
+    public Guid? TenantId { get; private set; }
+
     public string Token { get; private set; } = string.Empty;
     public DateTime ExpiresAt { get; private set; }
     public DateTime? RevokedAt { get; private set; }
@@ -20,11 +24,12 @@ public sealed class RefreshToken : Entity
 
     private RefreshToken() { }
 
-    public static RefreshToken Create(Guid userId, int daysValid, string? ipAddress, string? userAgent)
+    public static RefreshToken Create(Guid userId, int daysValid, string? ipAddress, string? userAgent, Guid? tenantId = null)
     {
         return new RefreshToken
         {
             UserId = userId,
+            TenantId = tenantId,
             Token = GenerateSecureToken(),
             ExpiresAt = DateTime.UtcNow.AddDays(daysValid),
             CreatedByIp = ipAddress,

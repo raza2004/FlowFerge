@@ -4,7 +4,7 @@
 
     <!-- Workspace header -->
     <div class="px-4 py-4 border-b border-zinc-800">
-      <button mat-button [matMenuTriggerFor]="workspaceMenu"
+      <button mat-button [matMenuTriggerFor]="workspaceMenu" (menuOpened)="loadWorkspaces()"
               class="!w-full !justify-start !text-left !px-2 !py-2 !text-white hover:!bg-zinc-800">
         <div class="flex items-center gap-2.5 w-full">
           <div class="w-8 h-8 rounded-md bg-forge-500 flex items-center justify-center text-zinc-900 font-bold text-sm font-display">
@@ -20,9 +20,19 @@
         </div>
       </button>
       <mat-menu #workspaceMenu="matMenu">
-        <button mat-menu-item disabled>
-          <mat-icon>add</mat-icon>
-          <span>New workspace</span>
+        <div class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Workspaces</div>
+        @for (w of workspaces(); track w.tenantId) {
+          <button mat-menu-item [disabled]="switching()" (click)="switchWorkspace(w.tenantId, w.isCurrent)">
+            <mat-icon>{{ w.isCurrent ? 'check' : 'apartment' }}</mat-icon>
+            <span>{{ w.name }}</span>
+            <span class="ml-2 text-xs text-zinc-400">{{ w.role }}</span>
+          </button>
+        } @empty {
+          <div class="px-4 py-2 text-sm text-zinc-400">Loading...</div>
+        }
+        <button mat-menu-item routerLink="/team">
+          <mat-icon>person_add</mat-icon>
+          <span>Invite people</span>
         </button>
       </mat-menu>
     </div>

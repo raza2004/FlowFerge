@@ -1,7 +1,7 @@
-using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Identity.DTOs;
+using FlowForge.Application.Identity.Services;
 using FlowForge.Domain.Common;
-using FlowForge.Domain.Identity;
+using FlowForge.Domain.Identity.Enums;
 using FlowForge.Shared.Results;
 using MediatR;
 
@@ -12,12 +12,12 @@ public record RefreshTokenCommand(string RefreshToken, string? IpAddress, string
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponse>>
 {
     private readonly IUnitOfWork _uow;
-    private readonly IJwtTokenGenerator _jwtGenerator;
+    private readonly IAuthSessionFactory _sessions;
 
-    public RefreshTokenCommandHandler(IUnitOfWork uow, IJwtTokenGenerator jwtGenerator)
+    public RefreshTokenCommandHandler(IUnitOfWork uow, IAuthSessionFactory sessions)
     {
         _uow = uow;
-        _jwtGenerator = jwtGenerator;
+        _sessions = sessions;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken ct)
@@ -33,33 +33,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         if (user == null)
             return Result.Failure<AuthResponse>(Error.Unauthorized("Auth.InvalidToken", "User not found"));
 
-        var newRefreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent);
-        await _uow.RefreshTokens.AddAsync(newRefreshToken, ct);
+        // Suspension takes effect at the next refresh at the latest, not just at the next login.
+        if (user.Status == UserStatus.Suspended)
+            return Result.Failure<AuthResponse>(Error.Unauthorized("Auth.AccountSuspended", "This account has been suspended"));
 
-        token.Revoke("Replaced by new token", newRefreshToken.Id);
-        _uow.RefreshTokens.Update(token);
+        token.Revoke("Rotated");
 
-        await _uow.SaveChangesAsync(ct);
-
-        var memberships = await _uow.Memberships.GetByUserAsync(user.Id, ct);
-        var primaryMembership = memberships.FirstOrDefault(m => m.IsActive);
-
-        var (accessToken, expiresAt) = _jwtGenerator.GenerateAccessTokenWithExpiry(user, primaryMembership);
-
-        TenantDto? tenantDto = null;
-        if (primaryMembership != null)
-        {
-            var tenant = await _uow.Tenants.GetByIdAsync(primaryMembership.TenantId, ct);
-            if (tenant != null)
-                tenantDto = new TenantDto(tenant.Id, tenant.Name, tenant.Slug, tenant.LogoUrl, tenant.PlanTier, tenant.IsActive, tenant.SlackWebhookUrl);
-        }
-
-        return Result.Success(new AuthResponse(
-            accessToken,
-            newRefreshToken.Token,
-            expiresAt,
-            new UserDto(user.Id, user.Email.Value, user.FirstName, user.LastName, user.FullName, user.AvatarUrl, user.IsSystemAdmin, user.IsEmailVerified, user.EmailNotificationsEnabled),
-            tenantDto
-        ));
+        // Stay in the workspace this session was using, unless access to it was lost meanwhile.
+        var membership = await _sessions.ResolveMembershipAsync(user.Id, token.TenantId, ct);
+        return Result.Success(await _sessions.CreateSessionAsync(user, membership, request.IpAddress, request.UserAgent, ct));
     }
 }

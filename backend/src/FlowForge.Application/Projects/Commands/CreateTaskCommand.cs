@@ -50,6 +50,12 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Resul
         if (project == null || project.TenantId != _currentUser.TenantId.Value)
             return Result.Failure<TaskCardDto>(Error.NotFound("Project.NotFound", "Project not found"));
 
+        // The board and list must belong to this project - ids come from the client.
+        var board = await _uow.Boards.GetByIdWithListsAsync(request.BoardId, ct);
+        var list = board?.ProjectId == project.Id ? board.Lists.FirstOrDefault(l => l.Id == request.ListId) : null;
+        if (list == null)
+            return Result.Failure<TaskCardDto>(Error.NotFound("BoardList.NotFound", "List not found in this project"));
+
         var taskNumber = await _uow.Tasks.GetNextTaskNumberAsync(request.ProjectId, ct);
         var taskNumberStr = $"{project.Key.Value}-{taskNumber}";
 
@@ -70,6 +76,10 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Resul
         if (!string.IsNullOrWhiteSpace(request.Description))
             task.UpdateDetails(task.Title, request.Description, task.Type, task.Priority);
 
+        // New cards go to the bottom of their list, and take that list's status (not always "Todo").
+        task.SetPosition(list.Tasks.Count == 0 ? 0 : list.Tasks.Max(t => t.Position) + 1);
+        task.ChangeStatus(list.Name, list.IsDoneColumn, _currentUser.UserId.Value, _currentUser.TenantId.Value);
+
         await _uow.Tasks.AddAsync(task, ct);
         await _uow.SaveChangesAsync(ct);
 
@@ -78,7 +88,8 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Resul
             task.Type.ToString(), task.Priority.ToString(),
             task.AssigneeId, null,
             task.DueDate, task.IsOverdue,
-            task.Position, task.CommentCount
+            task.Position, task.CommentCount,
+            new List<LabelDto>()
         ));
     }
 }

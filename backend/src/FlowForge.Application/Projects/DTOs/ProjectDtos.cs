@@ -63,7 +63,73 @@ public record UpdateTaskRequest(
     string Title,
     string? Description,
     TaskType Type,
-    TaskPriority Priority
+    TaskPriority Priority,
+    DateTime? DueDate,
+    double? EstimatedHours,
+    int? StoryPoints,
+    Guid? BoardId
+);
+
+public record LabelDto(Guid Id, string Name, string Color);
+public record CreateLabelRequest(string Name, string Color);
+public record TaskWatcherDto(Guid UserId, string FullName);
+public record SubtaskDto(Guid Id, string TaskNumber, string Title, bool IsCompleted);
+public record TaskCommentDto(
+    Guid Id,
+    Guid AuthorId,
+    string AuthorName,
+    string Content,
+    bool IsEdited,
+    DateTime CreatedAt,
+    List<Guid> MentionedUserIds
+);
+public record AddCommentRequest(string Content, List<Guid>? MentionedUserIds);
+public record UpdateListRequest(string Name, string Color, int? WipLimit, bool IsDoneColumn);
+public record ReorderListsRequest(List<Guid> ListIds);
+public record LogTimeRequest(double Hours, DateTime? WorkDate, string? Note);
+public record AttachmentDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    long FileSizeBytes,
+    Guid UploadedById,
+    string UploadedByName,
+    DateTime CreatedAt,
+    bool IsPreviewableImage
+);
+public record TimeEntryDto(Guid Id, Guid UserId, string UserName, double Hours, DateTime WorkDate, string? Note, DateTime CreatedAt);
+public record EditCommentRequest(string Content);
+public record CreateSubtaskRequest(string Title);
+
+public record TaskDetailDto(
+    Guid Id,
+    Guid ProjectId,
+    Guid BoardId,
+    Guid ListId,
+    string TaskNumber,
+    string Title,
+    string? Description,
+    string Type,
+    string Priority,
+    string Status,
+    Guid? AssigneeId,
+    string? AssigneeName,
+    Guid? ParentTaskId,
+    DateTime? DueDate,
+    double? EstimatedHours,
+    int? StoryPoints,
+    bool IsOverdue,
+    bool IsCompleted,
+    DateTime CreatedAt,
+    string? CreatedByName,
+    List<LabelDto> Labels,
+    List<TaskWatcherDto> Watchers,
+    bool IsWatching,
+    List<SubtaskDto> Subtasks,
+    List<TaskCommentDto> Comments,
+    double? ActualHours,
+    List<TimeEntryDto> TimeEntries,
+    List<AttachmentDto> Attachments
 );
 public record MoveTaskRequest(Guid ListId, int Position);
 public record TaskDto(
@@ -99,7 +165,8 @@ public record BoardListDto(
     string Color,
     int Position,
     int? WipLimit,
-    List<TaskCardDto> Tasks
+    List<TaskCardDto> Tasks,
+    bool IsDoneColumn = false
 );
 
 public record TaskCardDto(
@@ -113,7 +180,11 @@ public record TaskCardDto(
     DateTime? DueDate,
     bool IsOverdue,
     int Position,
-    int CommentCount
+    int CommentCount,
+    List<LabelDto>? Labels = null,
+    Guid? ParentTaskId = null,
+    int SubtaskCount = 0,
+    int AttachmentCount = 0
 );
 
 public record DashboardStatsDto(

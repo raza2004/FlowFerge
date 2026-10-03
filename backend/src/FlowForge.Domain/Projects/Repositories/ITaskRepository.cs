@@ -15,4 +15,13 @@ public interface ITaskRepository
     Task<int> GetNextTaskNumberAsync(Guid projectId, CancellationToken ct = default);
     Task AddAsync(ProjectTask task, CancellationToken ct = default);
     void Update(ProjectTask task);
+
+    Task<IEnumerable<TimeEntry>> GetTimeEntriesAsync(Guid taskId, CancellationToken ct = default);
+    Task<TimeEntry?> GetTimeEntryByIdAsync(Guid id, CancellationToken ct = default);
+    Task AddTimeEntryAsync(TimeEntry entry, CancellationToken ct = default);
+    void RemoveTimeEntry(TimeEntry entry);
+
+    Task<TaskAttachment?> GetAttachmentByIdAsync(Guid id, CancellationToken ct = default);
+    Task AddAttachmentAsync(TaskAttachment attachment, CancellationToken ct = default);
+    void RemoveAttachment(TaskAttachment attachment);
 }

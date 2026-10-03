@@ -44,4 +44,18 @@ public class ProjectsController : ControllerBase
         var result = await _mediator.Send(new GetProjectBoardsQuery(id));
         return result.ToActionResult();
     }
+
+    [HttpGet("{id:guid}/labels")]
+    public async Task<IActionResult> GetLabels(Guid id)
+    {
+        var result = await _mediator.Send(new GetProjectLabelsQuery(id));
+        return result.ToActionResult();
+    }
+
+    [HttpPost("{id:guid}/labels")]
+    public async Task<IActionResult> CreateLabel(Guid id, [FromBody] CreateLabelRequest body)
+    {
+        var result = await _mediator.Send(new CreateLabelCommand(id, body.Name, body.Color));
+        return result.ToActionResult();
+    }
 }

@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogRef } from '@angular/material/dialog';
 import {
   CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem
@@ -28,6 +29,12 @@ import { ProjectDto, BoardDto, BoardListDto, TaskCardDto } from '../../../shared
 import { AutomationRuleDto, AutomationActionType, AutomationTriggerType } from '../../../shared/models/automation.models';
 import { TenantMemberDto } from '../../../shared/models/auth.models';
 import { TaskAiDialogComponent, TaskAiDialogData } from './task-ai-dialog.component';
+import { TaskDetailDialogComponent, TaskDetailDialogData } from './task-detail-dialog.component';
+import {
+  ListSettingsDialogComponent, ListSettingsDialogData, DeleteListDialogComponent, DeleteListDialogData
+} from './list-dialogs.component';
+import { ListSettings } from '../../../shared/models/project.models';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-create-task-dialog',
@@ -170,7 +177,7 @@ export class CreateAutomationDialogComponent {
   imports: [
     CommonModule, RouterLink, DragDropModule,
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
-    MatMenuModule, MatDialogModule, MatSlideToggleModule
+    MatMenuModule, MatDialogModule, MatSlideToggleModule, MatTooltipModule
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss'
@@ -197,6 +204,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   aiSummaryLoading = signal(false);
   aiSummaryError = signal<string | null>(null);
 
+  private realtimeSubs = new Subscription();
+  private reloadTimer?: ReturnType<typeof setTimeout>;
+  private justDragged = false;
+
   get listConnectedTo(): string[] {
     return this.board()?.lists.map(l => `list-${l.id}`) ?? [];
   }
@@ -215,16 +226,146 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         await this.signalr.startConnection();
         await this.signalr.joinBoard(boards[0].id);
 
-        this.signalr.taskMoved$.subscribe(event => this.applyRemoteMove(event));
-        this.signalr.taskCreated$.subscribe(task => this.applyRemoteCreate(task));
+        this.realtimeSubs.add(this.signalr.taskMoved$.subscribe(event => this.applyRemoteMove(event)));
+        this.realtimeSubs.add(this.signalr.taskCreated$.subscribe(task => this.applyRemoteCreate(task)));
+        this.realtimeSubs.add(this.signalr.taskUpdated$.subscribe(() => this.scheduleReload()));
+        this.realtimeSubs.add(this.signalr.taskDeleted$.subscribe(e => this.removeTaskLocally(e.taskId)));
+        this.realtimeSubs.add(this.signalr.boardChanged$.subscribe(() => this.scheduleReload()));
       }
       this.isLoading.set(false);
     });
   }
 
   async ngOnDestroy() {
+    this.realtimeSubs.unsubscribe();
+    clearTimeout(this.reloadTimer);
     const b = this.board();
     if (b) await this.signalr.leaveBoard(b.id);
+  }
+
+  onDragStarted() {
+    this.justDragged = true;
+  }
+
+  onDragEnded() {
+    // The browser fires a click right after the drop; ignore it so dragging never opens the task.
+    setTimeout(() => this.justDragged = false, 100);
+  }
+
+  openTaskDetail(task: TaskCardDto) {
+    const board = this.board();
+    const project = this.project();
+    if (this.justDragged || !board || !project) return;
+
+    this.dialog.open(TaskDetailDialogComponent, {
+      width: '880px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: {
+        taskId: task.id,
+        boardId: board.id,
+        projectId: project.id,
+        members: this.members(),
+        onChanged: () => this.scheduleReload()
+      } as TaskDetailDialogData
+    });
+  }
+
+  boardError = signal<string | null>(null);
+
+  openAddList() {
+    const board = this.board();
+    if (!board) return;
+    this.dialog.open(ListSettingsDialogComponent, { data: {} as ListSettingsDialogData })
+      .afterClosed().subscribe((settings?: ListSettings) => {
+        if (!settings) return;
+        this.boardsService.createList(board.id, settings).subscribe({
+          next: () => this.reloadBoard(),
+          error: err => this.boardError.set(err.error?.detail ?? 'Could not add the list.')
+        });
+      });
+  }
+
+  editList(list: BoardListDto) {
+    const board = this.board();
+    if (!board) return;
+    this.dialog.open(ListSettingsDialogComponent, { data: { list } as ListSettingsDialogData })
+      .afterClosed().subscribe((settings?: ListSettings) => {
+        if (!settings) return;
+        this.boardsService.updateList(board.id, list.id, settings).subscribe({
+          next: () => this.reloadBoard(),
+          error: err => this.boardError.set(err.error?.detail ?? 'Could not update the list.')
+        });
+      });
+  }
+
+  deleteList(list: BoardListDto) {
+    const board = this.board();
+    if (!board) return;
+    if (board.lists.length <= 1) {
+      this.boardError.set('A board needs at least one list.');
+      return;
+    }
+    const data: DeleteListDialogData = { list, otherLists: board.lists.filter(l => l.id !== list.id) };
+    this.dialog.open(DeleteListDialogComponent, { data })
+      .afterClosed().subscribe((result?: { moveTasksTo: string | null }) => {
+        if (!result) return;
+        this.boardsService.deleteList(board.id, list.id, result.moveTasksTo).subscribe({
+          next: () => {
+            this.reloadBoard();
+            // Rules triggered by the deleted list were removed server-side; refresh the panel.
+            const project = this.project();
+            if (project) this.automationsService.getForProject(project.id).subscribe(rules => this.automations.set(rules));
+          },
+          error: err => this.boardError.set(err.error?.detail ?? 'Could not delete the list.')
+        });
+      });
+  }
+
+  moveList(list: BoardListDto, direction: -1 | 1) {
+    const board = this.board();
+    if (!board) return;
+    const ids = board.lists.map(l => l.id);
+    const from = ids.indexOf(list.id);
+    const to = from + direction;
+    if (to < 0 || to >= ids.length) return;
+    [ids[from], ids[to]] = [ids[to], ids[from]];
+
+    // Reorder locally right away so the board feels instant; the server copy follows.
+    const reordered = ids.map(id => board.lists.find(l => l.id === id)!);
+    this.board.set({ ...board, lists: reordered });
+    this.boardsService.reorderLists(board.id, ids).subscribe({
+      error: err => {
+        this.boardError.set(err.error?.detail ?? 'Could not reorder lists.');
+        this.reloadBoard();
+      }
+    });
+  }
+
+  wipState(list: BoardListDto): 'over' | 'at' | 'ok' {
+    if (!list.wipLimit) return 'ok';
+    if (list.tasks.length > list.wipLimit) return 'over';
+    return list.tasks.length === list.wipLimit ? 'at' : 'ok';
+  }
+
+  /** Several change signals can arrive together (our own REST call plus its SignalR echo), so collapse them into one refetch. */
+  private scheduleReload() {
+    clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => this.reloadBoard(), 250);
+  }
+
+  private removeTaskLocally(taskId: string) {
+    const board = this.board();
+    if (!board) return;
+    for (const list of board.lists) {
+      list.tasks = list.tasks.filter(t => t.id !== taskId && t.parentTaskId !== taskId);
+    }
+    this.board.set({ ...board });
+  }
+
+  initials(name: string | null | undefined): string {
+    if (!name) return '?';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
   }
 
   async onDrop(event: CdkDragDrop<TaskCardDto[]>, targetList: BoardListDto) {

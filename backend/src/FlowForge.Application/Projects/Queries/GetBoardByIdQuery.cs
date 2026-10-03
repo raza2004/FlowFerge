@@ -1,5 +1,6 @@
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Projects.DTOs;
+using FlowForge.Application.Projects.Mapping;
 using FlowForge.Domain.Common;
 using FlowForge.Shared.Results;
 using MediatR;
@@ -28,22 +29,7 @@ public class GetBoardByIdQueryHandler : IRequestHandler<GetBoardByIdQuery, Resul
         if (board == null || board.TenantId != _currentUser.TenantId.Value)
             return Result.Failure<BoardDto>(Error.NotFound("Board.NotFound", "Board not found"));
 
-        var lists = board.Lists
-            .OrderBy(l => l.Position)
-            .Select(l => new BoardListDto(
-                l.Id, l.Name, l.Color, l.Position, l.WipLimit,
-                l.Tasks
-                    .OrderBy(t => t.Position)
-                    .Select(t => new TaskCardDto(
-                        t.Id, t.TaskNumber, t.Title,
-                        t.Type.ToString(), t.Priority.ToString(),
-                        t.AssigneeId, null,
-                        t.DueDate, t.IsOverdue,
-                        t.Position, t.CommentCount
-                    ))
-                    .ToList()
-            ))
-            .ToList();
+        var lists = await TaskCardMapper.MapListsAsync(board, _uow, ct);
 
         return Result.Success(new BoardDto(
             board.Id, board.Name, board.Description, board.Type.ToString(), lists

@@ -46,7 +46,98 @@ export interface TaskCardDto {
   isOverdue: boolean;
   position: number;
   commentCount: number;
+  labels?: LabelDto[] | null;
+  parentTaskId?: string | null;
+  subtaskCount?: number;
 }
+
+export interface LabelDto {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TaskWatcherDto {
+  userId: string;
+  fullName: string;
+}
+
+export interface SubtaskDto {
+  id: string;
+  taskNumber: string;
+  title: string;
+  isCompleted: boolean;
+}
+
+export interface TaskCommentDto {
+  id: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  isEdited: boolean;
+  createdAt: string;
+  mentionedUserIds: string[];
+}
+
+export interface TaskDetailDto {
+  id: string;
+  projectId: string;
+  boardId: string;
+  listId: string;
+  taskNumber: string;
+  title: string;
+  description: string | null;
+  type: string;
+  priority: string;
+  status: string;
+  assigneeId: string | null;
+  assigneeName: string | null;
+  parentTaskId: string | null;
+  dueDate: string | null;
+  estimatedHours: number | null;
+  storyPoints: number | null;
+  isOverdue: boolean;
+  isCompleted: boolean;
+  createdAt: string;
+  createdByName: string | null;
+  labels: LabelDto[];
+  watchers: TaskWatcherDto[];
+  isWatching: boolean;
+  subtasks: SubtaskDto[];
+  comments: TaskCommentDto[];
+  actualHours: number | null;
+  timeEntries: TimeEntryDto[];
+}
+
+export interface UpdateTaskRequest {
+  title: string;
+  description: string | null;
+  type: number;
+  priority: number;
+  dueDate: string | null;
+  estimatedHours: number | null;
+  storyPoints: number | null;
+  boardId: string;
+}
+
+// Mirror the backend enums so the edit form can send numeric values.
+export const TASK_TYPES: { value: number; label: string }[] = [
+  { value: 0, label: 'Task' },
+  { value: 1, label: 'Bug' },
+  { value: 2, label: 'Feature' },
+  { value: 3, label: 'Story' },
+  { value: 4, label: 'Epic' },
+  { value: 5, label: 'Improvement' }
+];
+
+export const TASK_PRIORITIES: { value: number; label: string }[] = [
+  { value: 0, label: 'Lowest' },
+  { value: 1, label: 'Low' },
+  { value: 2, label: 'Medium' },
+  { value: 3, label: 'High' },
+  { value: 4, label: 'Highest' },
+  { value: 5, label: 'Critical' }
+];
 
 export interface BoardListDto {
   id: string;
@@ -55,6 +146,24 @@ export interface BoardListDto {
   position: number;
   wipLimit: number | null;
   tasks: TaskCardDto[];
+  isDoneColumn?: boolean;
+}
+
+export interface ListSettings {
+  name: string;
+  color: string;
+  wipLimit: number | null;
+  isDoneColumn: boolean;
+}
+
+export interface TimeEntryDto {
+  id: string;
+  userId: string;
+  userName: string;
+  hours: number;
+  workDate: string;
+  note: string | null;
+  createdAt: string;
 }
 
 export interface BoardDto {

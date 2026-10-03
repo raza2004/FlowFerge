@@ -1,5 +1,6 @@
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Notifications.DTOs;
+using FlowForge.Application.Notifications.Messages;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Notifications;
 using Microsoft.Extensions.Logging;
@@ -10,18 +11,16 @@ public class NotificationDispatcher : INotificationDispatcher
 {
     private readonly IUnitOfWork _uow;
     private readonly IRealtimeNotifier _realtime;
-    private readonly IEmailSender _email;
-    private readonly ISlackNotifier _slack;
+    private readonly IMessageBus _messageBus;
     private readonly ILogger<NotificationDispatcher> _logger;
 
     public NotificationDispatcher(
-        IUnitOfWork uow, IRealtimeNotifier realtime, IEmailSender email, ISlackNotifier slack,
+        IUnitOfWork uow, IRealtimeNotifier realtime, IMessageBus messageBus,
         ILogger<NotificationDispatcher> logger)
     {
         _uow = uow;
         _realtime = realtime;
-        _email = email;
-        _slack = slack;
+        _messageBus = messageBus;
         _logger = logger;
     }
 
@@ -31,29 +30,33 @@ public class NotificationDispatcher : INotificationDispatcher
             notification.Id, notification.Type, notification.Title, notification.Message,
             notification.RelatedTaskId, notification.RelatedProjectId, notification.IsRead, notification.CreatedAt);
 
-        // Real-time is unconditional - every other channel is a "also send it here" add-on.
+        // Real-time is synchronous and unconditional - it's cheap, local, and the user is
+        // plausibly looking at the screen right now. Email/Slack are slow, external I/O that
+        // can time out or rate-limit, so those go on a RabbitMQ queue instead: this request
+        // finishes immediately, and FlowForge.Workers delivers them independently, with a
+        // message broker's at-least-once retry semantics instead of "hope the SMTP call works."
         await _realtime.NotifyUserAsync(notification.UserId, "NotificationReceived", dto, ct);
 
         var user = await _uow.Users.GetByIdAsync(notification.UserId, ct);
-        if (user != null && user.EmailNotificationsEnabled)
-        {
-            var emailBody =
-                $"<p><strong>{System.Net.WebUtility.HtmlEncode(notification.Title)}</strong></p>" +
-                $"<p>{System.Net.WebUtility.HtmlEncode(notification.Message)}</p>" +
-                "<p style=\"color:#888;font-size:12px\">Sent by FlowForge</p>";
-
-            var emailResult = await _email.SendAsync(user.Email.Value, notification.Title, emailBody, ct);
-            if (emailResult.IsFailure)
-                _logger.LogWarning("Email notification to {Email} failed: {Error}", user.Email.Value, emailResult.Error.Message);
-        }
-
         var tenant = await _uow.Tenants.GetByIdAsync(notification.TenantId, ct);
-        if (!string.IsNullOrWhiteSpace(tenant?.SlackWebhookUrl))
+
+        var recipientEmail = user is { EmailNotificationsEnabled: true } ? user.Email.Value : null;
+        var slackWebhookUrl = string.IsNullOrWhiteSpace(tenant?.SlackWebhookUrl) ? null : tenant.SlackWebhookUrl;
+
+        if (recipientEmail == null && slackWebhookUrl == null)
+            return;
+
+        try
         {
-            var slackText = $"*{notification.Title}*\n{notification.Message}";
-            var slackResult = await _slack.PostAsync(tenant.SlackWebhookUrl, slackText, ct);
-            if (slackResult.IsFailure)
-                _logger.LogWarning("Slack notification for tenant {TenantId} failed: {Error}", tenant.Id, slackResult.Error.Message);
+            await _messageBus.PublishAsync(
+                new DeliverNotificationMessage(notification.Id, recipientEmail, notification.Title, notification.Message, slackWebhookUrl),
+                ct);
+        }
+        catch (Exception ex)
+        {
+            // RabbitMQ being unreachable should never fail the request that triggered this -
+            // realtime delivery above already happened, email/Slack are best-effort add-ons.
+            _logger.LogWarning(ex, "Failed to publish DeliverNotificationMessage for notification {NotificationId}", notification.Id);
         }
     }
 }

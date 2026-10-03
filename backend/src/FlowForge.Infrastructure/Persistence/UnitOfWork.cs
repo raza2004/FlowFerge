@@ -27,7 +27,8 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         ILabelRepository labels,
         IAutomationRuleRepository automationRules,
         INotificationRepository notifications,
-        IAuditLogRepository auditLogs)
+        IAuditLogRepository auditLogs,
+        IInvitationRepository invitations)
     {
         _ctx = ctx;
         Tenants = tenants;
@@ -43,6 +44,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         AutomationRules = automationRules;
         Notifications = notifications;
         AuditLogs = auditLogs;
+        Invitations = invitations;
     }
 
     public ITenantRepository Tenants { get; }
@@ -58,6 +60,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     public IAutomationRuleRepository AutomationRules { get; }
     public INotificationRepository Notifications { get; }
     public IAuditLogRepository AuditLogs { get; }
+    public IInvitationRepository Invitations { get; }
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default) => _ctx.SaveChangesAsync(ct);
 

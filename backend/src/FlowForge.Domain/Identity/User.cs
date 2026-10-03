@@ -83,6 +83,16 @@ public sealed class User : AggregateRoot
         return Result.Success();
     }
 
+    /// <summary>An invitation link is sent to the address itself, so following it proves ownership.</summary>
+    public void MarkEmailVerifiedByInvitation()
+    {
+        if (EmailVerifiedAt != null) return;
+        EmailVerifiedAt = DateTime.UtcNow;
+        EmailVerificationToken = null;
+        Status = UserStatus.Active;
+        Touch();
+    }
+
     public void UpdateProfile(string firstName, string lastName, string? bio, string? phoneNumber, string? avatarUrl)
     {
         FirstName = firstName.Trim();

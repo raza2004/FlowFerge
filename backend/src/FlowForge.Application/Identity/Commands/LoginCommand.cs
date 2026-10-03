@@ -77,7 +77,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             if (t?.IsActive == true) { primaryMembership = m; break; }
         }
 
-        var refreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent);
+        var refreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent, primaryMembership?.TenantId);
         await _uow.RefreshTokens.AddAsync(refreshToken, ct);
         _uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);

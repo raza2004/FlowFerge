@@ -13,6 +13,7 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
     IMembershipRepository Memberships { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    IInvitationRepository Invitations { get; }
 
     // Projects context repositories
     IProjectRepository Projects { get; }

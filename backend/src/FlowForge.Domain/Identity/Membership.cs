@@ -72,5 +72,14 @@ public sealed class Membership : Entity
         Touch();
     }
 
+    /// <summary>Brings a previously removed member back, e.g. when they accept a new invitation.</summary>
+    public void Reactivate(MembershipRole role)
+    {
+        IsActive = true;
+        LeftAt = null;
+        Role = role;
+        Touch();
+    }
+
     public bool HasPermission(MembershipRole minimumRole) => Role <= minimumRole;
 }

@@ -104,7 +104,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 
             await _uow.Memberships.AddAsync(membershipResult.Value, ct);
 
-            var refreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent);
+            var refreshToken = RefreshToken.Create(user.Id, 7, request.IpAddress, request.UserAgent, tenant.Id);
             await _uow.RefreshTokens.AddAsync(refreshToken, ct);
 
             await _uow.SaveChangesAsync(ct);

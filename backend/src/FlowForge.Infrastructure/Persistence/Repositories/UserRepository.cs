@@ -25,6 +25,13 @@ public class UserRepository : IUserRepository
     public Task<bool> AnyExistAsync(CancellationToken ct = default) =>
         _ctx.Users.AnyAsync(ct);
 
+    public async Task<IEnumerable<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return Array.Empty<User>();
+        return await _ctx.Users.Where(u => idList.Contains(u.Id)).ToListAsync(ct);
+    }
+
     public async Task<IEnumerable<User>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default) =>
         await _ctx.Users
             .Where(u => _ctx.Memberships.Any(m => m.TenantId == tenantId && m.UserId == u.Id && m.IsActive))

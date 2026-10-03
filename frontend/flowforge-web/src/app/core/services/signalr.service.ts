@@ -17,6 +17,9 @@ export class SignalrService {
 
   taskMoved$ = new Subject<TaskMovedEvent>();
   taskCreated$ = new Subject<any>();
+  taskUpdated$ = new Subject<{ taskId: string }>();
+  taskDeleted$ = new Subject<{ taskId: string }>();
+  boardChanged$ = new Subject<{ boardId: string }>();
 
   async startConnection(): Promise<void> {
     if (this.connection?.state === 'Connected') return;
@@ -31,6 +34,9 @@ export class SignalrService {
 
     this.connection.on('TaskMoved', (event: TaskMovedEvent) => this.taskMoved$.next(event));
     this.connection.on('TaskCreated', (event: any) => this.taskCreated$.next(event));
+    this.connection.on('TaskUpdated', (event: { taskId: string }) => this.taskUpdated$.next(event));
+    this.connection.on('TaskDeleted', (event: { taskId: string }) => this.taskDeleted$.next(event));
+    this.connection.on('BoardChanged', (event: { boardId: string }) => this.boardChanged$.next(event));
 
     await this.connection.start();
   }

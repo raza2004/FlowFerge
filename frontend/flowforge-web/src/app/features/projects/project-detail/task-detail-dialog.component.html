@@ -1,0 +1,363 @@
+@if (loading() && !task()) {
+  <div class="p-10 space-y-4">
+    <div class="h-4 w-24 rounded bg-zinc-200 animate-pulse"></div>
+    <div class="h-7 w-2/3 rounded bg-zinc-200 animate-pulse"></div>
+    <div class="h-24 w-full rounded bg-zinc-100 animate-pulse"></div>
+  </div>
+} @else if (task(); as t) {
+  <!-- Header -->
+  <div class="flex items-center gap-2 px-6 pt-5 pb-3 border-b border-zinc-100">
+    @if (t.parentTaskId) {
+      <button class="flex items-center gap-1 text-xs text-forge-600 hover:underline" (click)="loadTask(t.parentTaskId)">
+        <mat-icon class="!text-sm !w-4 !h-4">arrow_upward</mat-icon> Parent task
+      </button>
+      <span class="text-zinc-300">/</span>
+    }
+    <span class="font-mono text-xs text-zinc-500">{{ t.taskNumber }}</span>
+    <span class="text-xs px-2 py-0.5 rounded-full"
+          [class]="t.isCompleted ? 'bg-accent-50 text-accent-700' : 'bg-zinc-100 text-zinc-600'">
+      {{ t.status }}
+    </span>
+    <div class="flex-1"></div>
+    <button mat-icon-button [matTooltip]="t.isWatching ? 'Stop watching' : 'Watch for updates'" (click)="toggleWatch()">
+      <mat-icon [class.text-forge-600]="t.isWatching">{{ t.isWatching ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Delete task" (click)="confirmingDelete.set(true)">
+      <mat-icon class="text-zinc-500">delete_outline</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Close" (click)="ref.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  @if (confirmingDelete()) {
+    <div class="mx-6 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-3 text-sm">
+      <mat-icon class="text-red-600">warning_amber</mat-icon>
+      <span class="flex-1 text-red-800">
+        Delete this task{{ t.subtasks.length ? ' and its ' + t.subtasks.length + ' subtask(s)' : '' }}?
+      </span>
+      <button mat-button (click)="confirmingDelete.set(false)">Cancel</button>
+      <button mat-flat-button class="!bg-red-600 !text-white" (click)="deleteTask()">Delete</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="mx-6 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 flex items-start gap-2">
+      <span class="flex-1">{{ error() }}</span>
+      <button class="text-red-400 hover:text-red-600" (click)="error.set(null)">
+        <mat-icon class="!text-base">close</mat-icon>
+      </button>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-6 px-6 py-5 max-h-[72vh] overflow-y-auto">
+
+    <!-- Main column -->
+    <div class="min-w-0 space-y-6" [formGroup]="form">
+      <input formControlName="title"
+             class="w-full text-xl font-semibold font-display text-zinc-900 bg-transparent border border-transparent rounded-md px-2 py-1 -mx-2 hover:border-zinc-200 focus:border-forge-400 focus:outline-none">
+
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Description</div>
+        <textarea formControlName="description" rows="4" placeholder="Add more detail..."
+                  class="w-full text-sm text-zinc-800 border border-zinc-200 rounded-lg px-3 py-2 focus:border-forge-400 focus:outline-none resize-y"></textarea>
+      </div>
+
+      @if (form.dirty) {
+        <div class="flex items-center justify-end gap-2 -mt-3">
+          <button mat-button (click)="resetFormFromTask()">Discard</button>
+          <button mat-raised-button color="primary" [disabled]="form.invalid || saving()" (click)="save()">
+            {{ saving() ? 'Saving...' : 'Save changes' }}
+          </button>
+        </div>
+      }
+
+      <!-- Subtasks -->
+      @if (!t.parentTaskId) {
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">
+            Subtasks
+            @if (t.subtasks.length) {
+              <span class="normal-case tracking-normal text-zinc-400">
+                · {{ completedSubtasks(t) }}/{{ t.subtasks.length }} done
+              </span>
+            }
+          </div>
+          @if (t.subtasks.length) {
+            <div class="h-1 w-full rounded-full bg-zinc-100 mb-2 overflow-hidden">
+              <div class="h-full bg-accent-500 transition-all duration-300"
+                   [style.width.%]="(completedSubtasks(t) / t.subtasks.length) * 100"></div>
+            </div>
+          }
+          <ul class="space-y-1">
+            @for (s of t.subtasks; track s.id) {
+              <li>
+                <button class="w-full flex items-center gap-2 text-left text-sm rounded-md px-2 py-1.5 hover:bg-zinc-50"
+                        (click)="loadTask(s.id)">
+                  <mat-icon class="!text-base !w-4 !h-4" [class]="s.isCompleted ? 'text-accent-600' : 'text-zinc-300'">
+                    {{ s.isCompleted ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span class="font-mono text-xs text-zinc-400">{{ s.taskNumber }}</span>
+                  <span class="flex-1 truncate" [class.line-through]="s.isCompleted" [class.text-zinc-400]="s.isCompleted">
+                    {{ s.title }}
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+          <div class="flex gap-2 mt-2">
+            <input [(ngModel)]="newSubtaskTitle" [ngModelOptions]="{ standalone: true }" (keydown.enter)="addSubtask()"
+                   placeholder="Add a subtask..."
+                   class="flex-1 text-sm border border-zinc-200 rounded-md px-3 py-1.5 focus:border-forge-400 focus:outline-none">
+            <button mat-stroked-button [disabled]="!newSubtaskTitle.trim()" (click)="addSubtask()">Add</button>
+          </div>
+        </div>
+      }
+
+      <!-- Comments -->
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
+          Comments · {{ t.comments.length }}
+        </div>
+        <div class="space-y-4">
+          @for (c of t.comments; track c.id) {
+            <div class="flex gap-3 group">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">
+                {{ initials(c.authorName) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-medium text-zinc-800">{{ c.authorName }}</span>
+                  <span class="text-zinc-400">{{ c.createdAt | date:'MMM d, h:mm a' }}</span>
+                  @if (c.isEdited) { <span class="text-zinc-400">(edited)</span> }
+                  @if (c.authorId === currentUserId && editingCommentId() !== c.id) {
+                    <span class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                      <button class="text-zinc-400 hover:text-zinc-700" (click)="startEdit(c)">Edit</button>
+                      <button class="text-zinc-400 hover:text-red-600" (click)="deleteComment(c)">Delete</button>
+                    </span>
+                  }
+                </div>
+                @if (editingCommentId() === c.id) {
+                  <textarea [(ngModel)]="editingText" [ngModelOptions]="{ standalone: true }" rows="2"
+                            class="mt-1 w-full text-sm border border-forge-300 rounded-md px-3 py-2 focus:outline-none"></textarea>
+                  <div class="flex justify-end gap-2 mt-1">
+                    <button mat-button (click)="editingCommentId.set(null)">Cancel</button>
+                    <button mat-stroked-button color="primary" (click)="saveEdit(c)">Save</button>
+                  </div>
+                } @else {
+                  <p class="mt-0.5 text-sm text-zinc-700 whitespace-pre-wrap break-words">@for (seg of segments(c); track $index) {<span [class]="seg.mention ? 'text-forge-700 bg-forge-50 rounded px-0.5 font-medium' : ''">{{ seg.text }}</span>}</p>
+                }
+              </div>
+            </div>
+          } @empty {
+            <p class="text-sm text-zinc-400">No comments yet. Start the conversation.</p>
+          }
+        </div>
+
+        <!-- New comment -->
+        <div class="relative mt-4">
+          <textarea #commentBox [(ngModel)]="newComment" [ngModelOptions]="{ standalone: true }" rows="3"
+                    (input)="onCommentInput()" (click)="onCommentInput()" (keydown)="onCommentKeydown($event)"
+                    placeholder="Write a comment... type @ to mention someone"
+                    class="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:border-forge-400 focus:outline-none resize-y"></textarea>
+
+          @if (mentionSuggestions().length > 0) {
+            <div class="absolute left-0 bottom-full mb-1 w-64 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 z-10">
+              @for (m of mentionSuggestions(); track m.userId; let first = $first) {
+                <button class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-forge-50"
+                        [class.bg-zinc-50]="first" (mousedown)="$event.preventDefault(); insertMention(m)">
+                  <span class="w-6 h-6 rounded-full bg-forge-100 text-forge-700 text-[10px] font-bold flex items-center justify-center">
+                    {{ initials(m.fullName) }}
+                  </span>
+                  <span class="truncate">{{ m.fullName }}</span>
+                </button>
+              }
+            </div>
+          }
+
+          <div class="flex items-center justify-between mt-1">
+            <span class="text-[11px] text-zinc-400">Ctrl + Enter to post</span>
+            <button mat-raised-button color="primary" [disabled]="!newComment.trim()" (click)="postComment()">Comment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-5 text-sm" [formGroup]="form">
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Assignee</div>
+        <select class="w-full border border-zinc-200 rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none"
+                (change)="assign($any($event.target).value)">
+          @if (!t.assigneeId) { <option value="" disabled selected>Unassigned</option> }
+          @for (m of data.members; track m.userId) {
+            <option [value]="m.userId" [selected]="m.userId === t.assigneeId">{{ m.fullName }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Type</div>
+          <select formControlName="type" class="w-full border border-zinc-200 rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none">
+            @for (o of types; track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }
+          </select>
+        </div>
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Priority</div>
+          <select formControlName="priority" class="w-full border border-zinc-200 rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none">
+            @for (o of priorities; track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Due date</div>
+        <input type="date" formControlName="dueDate"
+               class="w-full border border-zinc-200 rounded-md px-2 py-1.5 focus:border-forge-400 focus:outline-none"
+               [class.text-red-600]="t.isOverdue">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Estimate (h)</div>
+          <input type="number" min="0" step="0.5" formControlName="estimatedHours"
+                 class="w-full border border-zinc-200 rounded-md px-2 py-1.5 focus:border-forge-400 focus:outline-none">
+        </div>
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Points</div>
+          <input type="number" min="0" max="100" formControlName="storyPoints"
+                 class="w-full border border-zinc-200 rounded-md px-2 py-1.5 focus:border-forge-400 focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Time tracking -->
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Time tracking</div>
+        <div class="flex items-baseline justify-between text-xs mb-1">
+          <span class="text-zinc-800 font-medium">{{ t.actualHours ?? 0 }}h logged</span>
+          @if (t.estimatedHours) { <span class="text-zinc-400">of {{ t.estimatedHours }}h</span> }
+        </div>
+        @if (t.estimatedHours) {
+          <div class="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden mb-2">
+            <div class="h-full transition-all duration-300"
+                 [class]="(t.actualHours ?? 0) > t.estimatedHours ? 'bg-red-500' : 'bg-forge-500'"
+                 [style.width.%]="timeProgress(t)"></div>
+          </div>
+        }
+        <div class="flex gap-1">
+          <input type="number" min="0.25" max="24" step="0.25" [(ngModel)]="logHours" [ngModelOptions]="{ standalone: true }"
+                 placeholder="Hours" (keydown.enter)="logTime()"
+                 class="w-20 border border-zinc-200 rounded-md px-2 py-1 text-xs focus:border-forge-400 focus:outline-none">
+          <input [(ngModel)]="logNote" [ngModelOptions]="{ standalone: true }" placeholder="What did you work on?"
+                 maxlength="500" (keydown.enter)="logTime()"
+                 class="flex-1 min-w-0 border border-zinc-200 rounded-md px-2 py-1 text-xs focus:border-forge-400 focus:outline-none">
+        </div>
+        <button class="mt-1 text-xs text-forge-600 font-medium disabled:text-zinc-300"
+                [disabled]="!logHours || logHours <= 0 || logHours > 24" (click)="logTime()">Log time</button>
+
+        @if (t.timeEntries.length) {
+          <ul class="mt-2 space-y-1">
+            @for (e of (showAllTime() ? t.timeEntries : t.timeEntries.slice(0, 3)); track e.id) {
+              <li class="group flex items-start gap-1.5 text-xs">
+                <span class="font-medium text-zinc-700 w-10 flex-shrink-0">{{ e.hours }}h</span>
+                <span class="flex-1 min-w-0 text-zinc-500">
+                  {{ e.userName }} · {{ e.workDate | date:'MMM d' }}
+                  @if (e.note) { <span class="block truncate text-zinc-400" [title]="e.note">{{ e.note }}</span> }
+                </span>
+                @if (e.userId === currentUserId) {
+                  <button class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-600"
+                          matTooltip="Delete entry" (click)="deleteTimeEntry(e.id, e.hours)">
+                    <mat-icon class="!text-sm !w-4 !h-4">close</mat-icon>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+          @if (t.timeEntries.length > 3) {
+            <button class="mt-1 text-xs text-zinc-500 hover:text-zinc-800" (click)="showAllTime.set(!showAllTime())">
+              {{ showAllTime() ? 'Show less' : 'Show all ' + t.timeEntries.length }}
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Labels -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">Labels</span>
+          <button class="text-xs text-forge-600 hover:underline" (click)="labelPickerOpen.set(!labelPickerOpen())">
+            {{ labelPickerOpen() ? 'Done' : 'Edit' }}
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          @for (l of t.labels; track l.id) {
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                  [style.background]="l.color + '1F'" [style.color]="l.color">
+              {{ l.name }}
+              @if (labelPickerOpen()) {
+                <button class="hover:opacity-70" (click)="toggleLabel(l, false)">
+                  <mat-icon class="!text-xs !w-3 !h-3">close</mat-icon>
+                </button>
+              }
+            </span>
+          } @empty {
+            @if (!labelPickerOpen()) { <span class="text-xs text-zinc-400">None</span> }
+          }
+        </div>
+
+        @if (labelPickerOpen()) {
+          <div class="mt-2 border border-zinc-200 rounded-lg p-2 space-y-2">
+            @if (availableLabels().length) {
+              <div class="flex flex-wrap gap-1.5">
+                @for (l of availableLabels(); track l.id) {
+                  <button class="text-xs font-medium px-2 py-0.5 rounded-full border hover:opacity-80"
+                          [style.borderColor]="l.color" [style.color]="l.color" (click)="toggleLabel(l, true)">
+                    + {{ l.name }}
+                  </button>
+                }
+              </div>
+            }
+            <div class="flex gap-1">
+              @for (c of labelColors; track c) {
+                <button class="w-4 h-4 rounded-full ring-offset-1" [style.background]="c"
+                        [class.ring-2]="newLabelColor === c" [style.--tw-ring-color]="c" (click)="newLabelColor = c"></button>
+              }
+            </div>
+            <div class="flex gap-1">
+              <input [(ngModel)]="newLabelName" [ngModelOptions]="{ standalone: true }" (keydown.enter)="createLabel()"
+                     placeholder="New label" maxlength="50"
+                     class="flex-1 min-w-0 text-xs border border-zinc-200 rounded px-2 py-1 focus:border-forge-400 focus:outline-none">
+              <button class="text-xs text-forge-600 font-medium px-1 disabled:text-zinc-300"
+                      [disabled]="!newLabelName.trim()" (click)="createLabel()">Create</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Watchers -->
+      <div>
+        <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5">Watchers</div>
+        @if (t.watchers.length) {
+          <div class="flex -space-x-1.5">
+            @for (w of t.watchers; track w.userId) {
+              <span class="w-7 h-7 rounded-full bg-zinc-200 border-2 border-white text-[10px] font-bold text-zinc-700 flex items-center justify-center"
+                    [matTooltip]="w.fullName">{{ initials(w.fullName) }}</span>
+            }
+          </div>
+        } @else {
+          <span class="text-xs text-zinc-400">No one yet</span>
+        }
+      </div>
+
+      <div class="pt-3 border-t border-zinc-100 text-xs text-zinc-400 space-y-0.5">
+        <div>Created {{ t.createdAt | date:'MMM d, y' }}{{ t.createdByName ? ' by ' + t.createdByName : '' }}</div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-sm text-zinc-500">{{ error() ?? 'Task not found.' }}</p>
+    <button mat-button class="mt-3" (click)="ref.close()">Close</button>
+  </div>
+}

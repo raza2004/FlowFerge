@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using FlowForge.Application.Common.Behaviors;
+using FlowForge.Application.Identity.Services;
 using FlowForge.Application.Notifications.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddAutoMapper(assembly);
 
         services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+        services.AddScoped<IAuthSessionFactory, AuthSessionFactory>();
 
         return services;
     }

@@ -7,9 +7,13 @@ using FlowForge.Domain.Projects.Repositories;
 using FlowForge.Domain.Workflows.Repositories;
 using FlowForge.Infrastructure.Persistence;
 using FlowForge.Infrastructure.Persistence.Repositories;
+using FlowForge.Infrastructure.Services;
 using FlowForge.Infrastructure.Services.AI;
 using FlowForge.Infrastructure.Services.Auth;
+using FlowForge.Infrastructure.Services.Messaging;
 using FlowForge.Infrastructure.Services.Notifications;
+using FlowForge.Infrastructure.Services.Storage;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +22,13 @@ namespace FlowForge.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
+    /// <param name="configureConsumers">
+    /// Lets a specific process (FlowForge.Workers) register the MassTransit consumers it
+    /// hosts, without Infrastructure needing to reference that process's project. The API
+    /// calls AddInfrastructure with no argument here - it only ever publishes messages.
+    /// </param>
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services, IConfiguration config, Action<IBusRegistrationConfigurator>? configureConsumers = null)
     {
         // Database
         services.AddDbContext<FlowForgeDbContext>(opts =>
@@ -28,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMembershipRepository, MembershipRepository>();
+        services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // Repositories (Projects)
@@ -56,10 +67,33 @@ public static class DependencyInjection
         // AI
         services.AddSingleton<IAiService, OpenAiService>();
 
+        services.AddSingleton<IAppLinks, AppLinks>();
+        services.AddSingleton<IFileStorage, MinioFileStorage>();
+
         // Notifications (email + Slack; real-time SignalR push is registered in the API layer)
         services.AddHttpClient(nameof(SlackWebhookNotifier));
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<ISlackNotifier, SlackWebhookNotifier>();
+
+        // Message bus (RabbitMQ via MassTransit) - carries slow notification channels
+        // (email/Slack) off the request thread. Every process (API, Workers) that calls
+        // AddInfrastructure gets a bus connection; only Workers registers consumers on it.
+        services.AddMassTransit(x =>
+        {
+            configureConsumers?.Invoke(x);
+
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(config["RabbitMQ:Host"] ?? "localhost", "/", h =>
+                {
+                    h.Username(config["RabbitMQ:Username"] ?? "guest");
+                    h.Password(config["RabbitMQ:Password"] ?? "guest");
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+        services.AddScoped<IMessageBus, MassTransitMessageBus>();
 
         // Context accessors (scoped per request)
         services.AddHttpContextAccessor();
