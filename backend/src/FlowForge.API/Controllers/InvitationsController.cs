@@ -1,4 +1,6 @@
 using FlowForge.API.Common;
+using FlowForge.API.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using FlowForge.Application.Identity.Commands;
 using FlowForge.Application.Identity.DTOs;
 using FlowForge.Application.Identity.Queries;
@@ -53,6 +55,7 @@ public class InvitationsController : ControllerBase
     }
 
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [HttpPost("by-token/{token}/register")]
     public async Task<IActionResult> Register(string token, [FromBody] RegisterWithInvitationRequest body)
     {

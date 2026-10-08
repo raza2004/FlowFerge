@@ -17,6 +17,11 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > DateTime.UtcNow)
             .ToListAsync(ct);
 
+    public Task<int> DeleteInactiveAsync(DateTime olderThan, CancellationToken ct = default) =>
+        _ctx.RefreshTokens
+            .Where(t => t.ExpiresAt < olderThan || (t.RevokedAt != null && t.RevokedAt < olderThan))
+            .ExecuteDeleteAsync(ct);
+
     public async Task AddAsync(RefreshToken refreshToken, CancellationToken ct = default) =>
         await _ctx.RefreshTokens.AddAsync(refreshToken, ct);
 

@@ -189,6 +189,17 @@ public sealed class ProjectTask : SoftDeletableEntity
         Touch();
     }
 
+    /// <summary>Puts the task in a sprint, or back in the backlog when <paramref name="sprintId"/> is null.</summary>
+    public Result AssignToSprint(Guid? sprintId)
+    {
+        if (ParentTaskId.HasValue)
+            return Result.Failure(Error.Validation("Task.SubtaskSprint", "Subtasks follow their parent task's sprint"));
+
+        SprintId = sprintId;
+        Touch();
+        return Result.Success();
+    }
+
     /// <summary>Sets the card's order within its current list (no event - it's not a move between lists).</summary>
     public void SetPosition(int position)
     {

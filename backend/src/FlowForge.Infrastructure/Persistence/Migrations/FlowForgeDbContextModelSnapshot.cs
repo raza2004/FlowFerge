@@ -84,6 +84,60 @@ namespace FlowForge.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("FlowForge.Domain.Features.FeatureFlag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("feature_flags", (string)null);
+                });
+
+            modelBuilder.Entity("FlowForge.Domain.Features.FeatureFlagOverride", b =>
+                {
+                    b.Property<Guid>("FeatureFlagId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("FeatureFlagId", "TenantId");
+
+                    b.ToTable("feature_flag_overrides", (string)null);
+                });
+
             modelBuilder.Entity("FlowForge.Domain.Identity.Invitation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1146,6 +1200,15 @@ namespace FlowForge.Infrastructure.Persistence.Migrations
                     b.ToTable("automation_rules", (string)null);
                 });
 
+            modelBuilder.Entity("FlowForge.Domain.Features.FeatureFlagOverride", b =>
+                {
+                    b.HasOne("FlowForge.Domain.Features.FeatureFlag", null)
+                        .WithMany("Overrides")
+                        .HasForeignKey("FeatureFlagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("FlowForge.Domain.Identity.Membership", b =>
                 {
                     b.HasOne("FlowForge.Domain.Identity.Tenant", "Tenant")
@@ -1258,6 +1321,11 @@ namespace FlowForge.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FlowForge.Domain.Features.FeatureFlag", b =>
+                {
+                    b.Navigation("Overrides");
                 });
 
             modelBuilder.Entity("FlowForge.Domain.Identity.Tenant", b =>

@@ -31,6 +31,7 @@ export class AdminLayoutComponent implements AfterViewInit {
     { path: '/dashboard',   label: 'Dashboard',   icon: 'space_dashboard' },
     { path: '/tenants',     label: 'Tenants',     icon: 'apartment' },
     { path: '/users',       label: 'Users',       icon: 'group' },
+    { path: '/features',    label: 'Feature flags', icon: 'toggle_on' },
     { path: '/audit-logs',  label: 'Audit logs',  icon: 'history' }
   ];
 

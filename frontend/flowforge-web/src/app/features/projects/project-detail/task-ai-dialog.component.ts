@@ -88,7 +88,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
 
           @if (assignee(); as a) {
             <div class="border border-gray-200 rounded-lg p-3 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-zinc-900 font-bold text-xs">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-ink font-bold text-xs">
                 {{ initials(a.fullName) }}
               </div>
               <div class="flex-1 min-w-0">

@@ -1,4 +1,6 @@
 using FlowForge.API.Common;
+using FlowForge.API.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using FlowForge.Application.Identity.Commands;
 using FlowForge.Application.Identity.DTOs;
 using MediatR;
@@ -13,6 +15,7 @@ public class AuthController : ControllerBase
     private readonly IMediator _mediator;
     public AuthController(IMediator mediator) => _mediator = mediator;
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
@@ -24,6 +27,7 @@ public class AuthController : ControllerBase
         return result.ToActionResult();
     }
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
@@ -33,6 +37,7 @@ public class AuthController : ControllerBase
         return result.ToActionResult();
     }
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest req)
     {

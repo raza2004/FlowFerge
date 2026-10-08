@@ -1,9 +1,11 @@
+using FlowForge.Application.Common.Abstractions;
 using FlowForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Testcontainers.Minio;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -11,12 +13,15 @@ namespace FlowForge.API.IntegrationTests;
 
 /// <summary>
 /// Boots the real API (real MediatR pipeline, real EF Core, real domain event
-/// dispatch/automation handlers) against throwaway PostgreSQL and MinIO containers instead
-/// of mocks, so persistence and file storage are exercised end to end.
+/// dispatch/automation handlers) against a throwaway PostgreSQL container instead of
+/// mocks - this is what actually exercises the reentrant-SaveChanges domain event fix
+/// and the AuditLoggingBehavior end to end, not just through mocked repositories.
 ///
-/// RabbitMQ is deliberately not started: MassTransit connects in the background and the
-/// API keeps working without a broker (publishing email/Slack jobs just fails and is
-/// logged), and OpenAI/SMTP/Slack clients are only constructed when a request needs them.
+/// File storage is swapped for an in-memory IFileStorage (see InMemoryFileStorage), so no
+/// MinIO container is needed. RabbitMQ is deliberately not started either: MassTransit
+/// connects in the background and the API keeps working without a broker (publishing
+/// email/Slack jobs just fails and is logged), and OpenAI/SMTP/Slack clients are only
+/// constructed when a request needs them.
 /// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
@@ -25,8 +30,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
-
-    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:RELEASE.2025-04-22T22-12-26Z").Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,16 +49,21 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         builder.UseSetting("Jwt:AccessTokenMinutes", "15");
         builder.UseSetting("Jwt:RefreshTokenDays", "7");
 
-        builder.UseSetting("MinIO:Endpoint", $"{_minio.Hostname}:{_minio.GetMappedPublicPort(9000)}");
-        builder.UseSetting("MinIO:AccessKey", _minio.GetAccessKey());
-        builder.UseSetting("MinIO:SecretKey", _minio.GetSecretKey());
-        builder.UseSetting("MinIO:BucketName", "flowforge-test");
-        builder.UseSetting("MinIO:UseSSL", "false");
+        // The suite registers and logs in dozens of times a minute from one address; the real
+        // limits would throttle the tests themselves. RateLimitingFlowTests turns them down on purpose.
+        builder.UseSetting("RateLimiting:Auth:PermitLimit", "100000");
+        builder.UseSetting("RateLimiting:Global:PermitLimit", "100000");
+
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IFileStorage>();
+            services.AddSingleton<IFileStorage, InMemoryFileStorage>();
+        });
     }
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
+        await _postgres.StartAsync();
 
         // Accessing Services builds the host (ConfigureWebHost runs here), by which
         // point the container above is already up and its connection string is real.
@@ -67,7 +75,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     public new async Task DisposeAsync()
     {
         await _postgres.DisposeAsync();
-        await _minio.DisposeAsync();
         await base.DisposeAsync();
     }
 }

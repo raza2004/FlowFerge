@@ -34,6 +34,7 @@ export const routes: Routes = [
       { path: 'inbox', loadComponent: () => import('./features/inbox/inbox.component').then(m => m.InboxComponent) },
       { path: 'my-work', loadComponent: () => import('./features/my-work/my-work.component').then(m => m.MyWorkComponent) },
       { path: 'projects', loadComponent: () => import('./features/projects/project-list/project-list.component').then(m => m.ProjectListComponent) },
+      { path: 'projects/:id/sprints', loadComponent: () => import('./features/sprints/sprints.component').then(m => m.SprintsComponent) },
       { path: 'projects/:id', loadComponent: () => import('./features/projects/project-detail/project-detail.component').then(m => m.ProjectDetailComponent) },
       { path: 'team', loadComponent: () => import('./features/team/team.component').then(m => m.TeamComponent) },
       { path: 'settings', loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent) }

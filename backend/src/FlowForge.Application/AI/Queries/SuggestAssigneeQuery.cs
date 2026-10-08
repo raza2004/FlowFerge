@@ -1,3 +1,4 @@
+using FlowForge.Application.Features;
 using FlowForge.Application.AI.DTOs;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Common;
@@ -6,7 +7,10 @@ using MediatR;
 
 namespace FlowForge.Application.AI.Queries;
 
-public record SuggestAssigneeQuery(Guid TaskId) : IRequest<Result<AssigneeSuggestionDto>>;
+public record SuggestAssigneeQuery(Guid TaskId) : IRequest<Result<AssigneeSuggestionDto>>, IRequiresFeature
+{
+    public string FeatureKey => FeatureKeys.AiAssistant;
+}
 
 public class SuggestAssigneeQueryHandler : IRequestHandler<SuggestAssigneeQuery, Result<AssigneeSuggestionDto>>
 {

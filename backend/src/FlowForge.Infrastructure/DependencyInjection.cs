@@ -1,6 +1,7 @@
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Auditing;
 using FlowForge.Domain.Common;
+using FlowForge.Domain.Features.Repositories;
 using FlowForge.Domain.Identity.Repositories;
 using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
@@ -10,6 +11,7 @@ using FlowForge.Infrastructure.Persistence.Repositories;
 using FlowForge.Infrastructure.Services;
 using FlowForge.Infrastructure.Services.AI;
 using FlowForge.Infrastructure.Services.Auth;
+using FlowForge.Infrastructure.Services.Caching;
 using FlowForge.Infrastructure.Services.Messaging;
 using FlowForge.Infrastructure.Services.Notifications;
 using FlowForge.Infrastructure.Services.Storage;
@@ -17,6 +19,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FlowForge.Infrastructure;
 
@@ -39,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
+        services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // Repositories (Projects)
@@ -68,6 +72,14 @@ public static class DependencyInjection
         services.AddSingleton<IAiService, OpenAiService>();
 
         services.AddSingleton<IAppLinks, AppLinks>();
+
+        // Cache: Redis when Redis:ConnectionString is set, otherwise a no-op. Either way the app
+        // behaves identically, just faster with Redis, and Redis being down never breaks a request.
+        var redisConnection = config["Redis:ConnectionString"];
+        if (string.IsNullOrWhiteSpace(redisConnection))
+            services.AddSingleton<ICache, NullCache>();
+        else
+            services.AddSingleton<ICache>(sp => new RedisCache(redisConnection, sp.GetRequiredService<ILogger<RedisCache>>()));
         services.AddSingleton<IFileStorage, MinioFileStorage>();
 
         // Notifications (email + Slack; real-time SignalR push is registered in the API layer)

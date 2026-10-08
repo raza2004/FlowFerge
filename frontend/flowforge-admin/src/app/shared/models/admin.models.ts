@@ -50,6 +50,20 @@ export interface AdminUserDto {
   lastLoginAt: string | null;
 }
 
+export interface FeatureOverrideDto {
+  tenantId: string;
+  tenantName: string;
+  isEnabled: boolean;
+}
+
+export interface FeatureFlagDto {
+  key: string;
+  name: string;
+  description: string;
+  isEnabled: boolean;
+  overrides: FeatureOverrideDto[];
+}
+
 export interface AdminAuditLogDto {
   id: string;
   tenantId: string;

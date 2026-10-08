@@ -30,6 +30,7 @@ public static class ResultExtensions
                 ErrorType.Conflict => 409,
                 ErrorType.Unauthorized => 401,
                 ErrorType.Forbidden => 403,
+                ErrorType.TooManyRequests => 429,
                 _ => 500
             }
         };

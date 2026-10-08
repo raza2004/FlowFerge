@@ -22,6 +22,9 @@ public class NotificationRepository : INotificationRepository
     public Task<int> GetUnreadCountAsync(Guid userId, Guid tenantId, CancellationToken ct = default) =>
         _ctx.Notifications.CountAsync(n => n.UserId == userId && n.TenantId == tenantId && !n.IsRead, ct);
 
+    public Task<bool> ExistsAsync(Guid userId, Guid relatedTaskId, FlowForge.Domain.Notifications.Enums.NotificationType type, DateTime since, CancellationToken ct = default) =>
+        _ctx.Notifications.AnyAsync(n => n.UserId == userId && n.RelatedTaskId == relatedTaskId && n.Type == type && n.CreatedAt >= since, ct);
+
     public async Task AddAsync(Notification notification, CancellationToken ct = default) =>
         await _ctx.Notifications.AddAsync(notification, ct);
 

@@ -1,16 +1,28 @@
+using System.Security.Claims;
 using System.Text;
 using FlowForge.API.Hubs;
 using FlowForge.API.Middleware;
+using FlowForge.API.RateLimiting;
 using FlowForge.API.Realtime;
 using FlowForge.Application;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Infrastructure;
+using FlowForge.Infrastructure.Observability;
 using FlowForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Context;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, _, logger) => logger.ConfigureFlowForgeLogging(context.Configuration, "FlowForge.API"));
+builder.Services.AddFlowForgeTracing(builder.Configuration, "FlowForge.API", tracing =>
+    tracing.AddAspNetCoreInstrumentation(options => options.Filter = http =>
+        !http.Request.Path.StartsWithSegments("/health") && !http.Request.Path.StartsWithSegments("/hubs")));
 
 // MVC + Swagger
 builder.Services.AddControllers();
@@ -44,6 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
+builder.Services.AddFlowForgeRateLimiting(builder.Configuration);
 
 // CORS for Angular
 builder.Services.AddCors(opts =>
@@ -101,10 +114,26 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<FlowForgeDbContext>();
     db.Database.Migrate();
+    FeatureFlagSeeder.EnsureAsync(db).GetAwaiter().GetResult();
 }
 
 // Middleware order is important
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// One structured line per request (path only, never the query string, which carries the
+// SignalR access token). Enriched at the end of the request, once the user is known.
+app.UseSerilogRequestLogging(options =>
+{
+    options.GetLevel = (http, _, ex) =>
+        ex != null || http.Response.StatusCode >= 500 ? LogEventLevel.Error
+        : http.Request.Path.StartsWithSegments("/health") ? LogEventLevel.Verbose
+        : LogEventLevel.Information;
+    options.EnrichDiagnosticContext = (diagnostics, http) =>
+    {
+        diagnostics.Set("UserId", http.User.FindFirst("sub")?.Value ?? http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        diagnostics.Set("TenantId", http.User.FindFirst("tenantId")?.Value);
+    };
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -115,6 +144,16 @@ if (app.Environment.IsDevelopment())
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
+// After authentication so the global limit can partition by signed-in user.
+if (builder.Configuration.GetValue("RateLimiting:Enabled", true)) app.UseRateLimiter();
+
+// Every log line written while handling a request carries who and which workspace it was for.
+app.Use(async (http, next) =>
+{
+    using (LogContext.PushProperty("UserId", http.User.FindFirst("sub")?.Value ?? http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value))
+    using (LogContext.PushProperty("TenantId", http.User.FindFirst("tenantId")?.Value))
+        await next();
+});
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<NotificationHub>("/hubs/notifications");

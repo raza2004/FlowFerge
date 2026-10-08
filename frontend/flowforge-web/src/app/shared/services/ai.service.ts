@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  TaskBreakdownSuggestionDto, AssigneeSuggestionDto, ProjectAiSummaryDto, ApplyTaskBreakdownRequest
+  TaskBreakdownSuggestionDto, AssigneeSuggestionDto, ProjectAiSummaryDto, ApplyTaskBreakdownRequest, ProjectBlockersDto
 } from '../models/ai.models';
 
 @Injectable({ providedIn: 'root' })
@@ -24,5 +24,9 @@ export class AiService {
 
   getProjectSummary(projectId: string): Observable<ProjectAiSummaryDto> {
     return this.http.get<ProjectAiSummaryDto>(`${environment.apiUrl}/projects/${projectId}/ai/summary`);
+  }
+
+  getProjectBlockers(projectId: string): Observable<ProjectBlockersDto> {
+    return this.http.get<ProjectBlockersDto>(`${environment.apiUrl}/projects/${projectId}/ai/blockers`);
   }
 }

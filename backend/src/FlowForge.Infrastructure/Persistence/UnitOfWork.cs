@@ -1,4 +1,5 @@
 using FlowForge.Domain.Auditing;
+using FlowForge.Domain.Features.Repositories;
 using FlowForge.Domain.Common;
 using FlowForge.Domain.Identity.Repositories;
 using FlowForge.Domain.Notifications.Repositories;
@@ -28,7 +29,8 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         IAutomationRuleRepository automationRules,
         INotificationRepository notifications,
         IAuditLogRepository auditLogs,
-        IInvitationRepository invitations)
+        IInvitationRepository invitations,
+        IFeatureFlagRepository featureFlags)
     {
         _ctx = ctx;
         Tenants = tenants;
@@ -45,6 +47,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         Notifications = notifications;
         AuditLogs = auditLogs;
         Invitations = invitations;
+        FeatureFlags = featureFlags;
     }
 
     public ITenantRepository Tenants { get; }
@@ -61,6 +64,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     public INotificationRepository Notifications { get; }
     public IAuditLogRepository AuditLogs { get; }
     public IInvitationRepository Invitations { get; }
+    public IFeatureFlagRepository FeatureFlags { get; }
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default) => _ctx.SaveChangesAsync(ct);
 

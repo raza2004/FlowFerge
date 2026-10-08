@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -17,6 +17,9 @@ export class NotificationsRealtimeService {
 
   notificationReceived$ = new Subject<NotificationDto>();
 
+  /** Live connection state, shown in the status bar so "is realtime working?" is never a guess. */
+  connected = signal(false);
+
   async startConnection(): Promise<void> {
     if (this.connection?.state === 'Connected') return;
 
@@ -29,12 +32,17 @@ export class NotificationsRealtimeService {
       .build();
 
     this.connection.on('NotificationReceived', (dto: NotificationDto) => this.notificationReceived$.next(dto));
+    this.connection.onreconnecting(() => this.connected.set(false));
+    this.connection.onreconnected(() => this.connected.set(true));
+    this.connection.onclose(() => this.connected.set(false));
 
     await this.connection.start();
+    this.connected.set(true);
   }
 
   async stop(): Promise<void> {
     await this.connection?.stop();
     this.connection = null;
+    this.connected.set(false);
   }
 }

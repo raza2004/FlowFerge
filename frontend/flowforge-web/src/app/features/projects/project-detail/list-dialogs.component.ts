@@ -22,13 +22,13 @@ export interface ListSettingsDialogData {
     <mat-dialog-content>
       <div class="space-y-4 pt-1 w-[360px] max-w-full">
         <label class="block">
-          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">Name</span>
+          <span class="text-xs font-medium uppercase tracking-wide text-ink-muted">Name</span>
           <input [(ngModel)]="settings.name" maxlength="100" autofocus
-                 class="mt-1 w-full text-sm border border-zinc-200 rounded-md px-3 py-2 focus:border-forge-400 focus:outline-none">
+                 class="mt-1 w-full text-sm border border-line rounded-md px-3 py-2 focus:border-forge-400 focus:outline-none">
         </label>
 
         <div>
-          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">Color</span>
+          <span class="text-xs font-medium uppercase tracking-wide text-ink-muted">Color</span>
           <div class="flex gap-2 mt-1.5">
             @for (c of colors; track c) {
               <button type="button" class="w-6 h-6 rounded-full ring-offset-2 transition"
@@ -39,10 +39,10 @@ export interface ListSettingsDialogData {
         </div>
 
         <label class="block">
-          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">WIP limit</span>
+          <span class="text-xs font-medium uppercase tracking-wide text-ink-muted">WIP limit</span>
           <input type="number" min="1" max="999" [(ngModel)]="settings.wipLimit" placeholder="No limit"
-                 class="mt-1 w-full text-sm border border-zinc-200 rounded-md px-3 py-2 focus:border-forge-400 focus:outline-none">
-          <span class="text-xs text-zinc-400">The card count turns red when a list goes over this.</span>
+                 class="mt-1 w-full text-sm border border-line rounded-md px-3 py-2 focus:border-forge-400 focus:outline-none">
+          <span class="text-xs text-ink-faint">The card count turns red when a list goes over this.</span>
         </label>
 
         @if (data.list) {
@@ -97,17 +97,17 @@ export interface DeleteListDialogData {
   template: `
     <h2 mat-dialog-title>Delete "{{ data.list.name }}"?</h2>
     <mat-dialog-content>
-      <div class="w-[360px] max-w-full text-sm text-zinc-600 space-y-3">
+      <div class="w-[360px] max-w-full text-sm text-ink-soft space-y-3">
         @if (data.list.tasks.length > 0) {
           <p>This list has {{ data.list.tasks.length }} task(s). Move them to:</p>
           <select [(ngModel)]="targetId"
-                  class="w-full border border-zinc-200 rounded-md px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
+                  class="w-full border border-line rounded-md px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
             @for (l of data.otherLists; track l.id) { <option [value]="l.id">{{ l.name }}</option> }
           </select>
         } @else {
           <p>The list is empty, so nothing else is affected.</p>
         }
-        <p class="text-xs text-zinc-400">Automation rules that trigger on this list are removed too.</p>
+        <p class="text-xs text-ink-faint">Automation rules that trigger on this list are removed too.</p>
       </div>
     </mat-dialog-content>
     <mat-dialog-actions align="end">

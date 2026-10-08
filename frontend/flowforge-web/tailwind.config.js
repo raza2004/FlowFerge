@@ -36,7 +36,28 @@ module.exports = {
           700: '#0A6F54',
           800: '#0A5945',
           900: '#094A3A'
+        },
+        // Surfaces: a cool, lavender-tinted neutral scale (inspired by Catppuccin Latte) instead of
+        // flat white/gray, so panels, columns and the page background separate softly.
+        canvas: '#F3F2F9',
+        panel: '#FFFFFF',
+        sunken: '#ECEBF5',
+        line: { DEFAULT: '#E4E2EF', strong: '#D2CFE3' },
+        // Text tones, tinted to match the surfaces rather than neutral gray.
+        ink: { DEFAULT: '#25223A', soft: '#4B4768', muted: '#6E6A86', faint: '#9D99B3' },
+        // Status tones: color is reserved for meaning. Each has a readable foreground, a soft tint
+        // for chip backgrounds and a hairline border.
+        tone: {
+          crit: { fg: '#B3123A', bg: '#FDE9EE', line: '#F6C3D0' },
+          high: { fg: '#B4510A', bg: '#FEEFE0', line: '#F8D0A8' },
+          med:  { fg: '#8A6508', bg: '#FBF3D6', line: '#EEDB96' },
+          low:  { fg: '#1F6F8B', bg: '#E3F2F7', line: '#B4D9E6' },
+          ok:   { fg: '#23723B', bg: '#E4F5E8', line: '#B6DFC1' }
         }
+      },
+      boxShadow: {
+        card: '0 1px 2px rgba(37, 34, 58, 0.06), 0 1px 1px rgba(37, 34, 58, 0.04)',
+        lift: '0 6px 16px -4px rgba(37, 34, 58, 0.16), 0 2px 4px rgba(37, 34, 58, 0.06)'
       }
     }
   },

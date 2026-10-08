@@ -25,6 +25,13 @@ public class InvitationRepository : IInvitationRepository
     public async Task<IEnumerable<Invitation>> GetPendingByTenantAndEmailAsync(Guid tenantId, Email email, CancellationToken ct = default) =>
         await Pending.Where(i => i.TenantId == tenantId && i.Email == email).ToListAsync(ct);
 
+    public Task<int> DeleteClosedAsync(DateTime olderThan, CancellationToken ct = default) =>
+        _ctx.Invitations
+            .Where(i => (i.AcceptedAt != null && i.AcceptedAt < olderThan)
+                     || (i.RevokedAt != null && i.RevokedAt < olderThan)
+                     || i.ExpiresAt < olderThan)
+            .ExecuteDeleteAsync(ct);
+
     public async Task AddAsync(Invitation invitation, CancellationToken ct = default) =>
         await _ctx.Invitations.AddAsync(invitation, ct);
 }

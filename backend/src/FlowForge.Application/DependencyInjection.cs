@@ -1,7 +1,9 @@
 using System.Reflection;
 using FluentValidation;
 using FlowForge.Application.Common.Behaviors;
+using FlowForge.Application.Features;
 using FlowForge.Application.Identity.Services;
+using FlowForge.Application.Jobs;
 using FlowForge.Application.Notifications.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(assembly);
             cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(FeatureGateBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             cfg.AddOpenBehavior(typeof(AuditLoggingBehavior<,>));
         });
@@ -28,6 +31,11 @@ public static class DependencyInjection
 
         services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
         services.AddScoped<IAuthSessionFactory, AuthSessionFactory>();
+        services.AddScoped<IFeatureGate, FeatureGate>();
+
+        // Scheduled work. The logic lives here so it's testable; FlowForge.Workers only schedules it.
+        services.AddScoped<DueSoonReminderService>();
+        services.AddScoped<DataCleanupService>();
 
         return services;
     }

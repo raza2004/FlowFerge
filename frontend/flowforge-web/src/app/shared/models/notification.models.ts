@@ -3,7 +3,8 @@ export enum NotificationType {
   TaskAssigned = 0,
   AutomationTriggered = 1,
   Mentioned = 2,
-  CommentAdded = 3
+  CommentAdded = 3,
+  DueSoon = 4
 }
 
 export interface NotificationDto {

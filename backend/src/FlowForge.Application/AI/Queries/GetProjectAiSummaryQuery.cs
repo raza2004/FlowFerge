@@ -1,3 +1,4 @@
+using FlowForge.Application.Features;
 using FlowForge.Application.AI.DTOs;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Common;
@@ -6,7 +7,10 @@ using MediatR;
 
 namespace FlowForge.Application.AI.Queries;
 
-public record GetProjectAiSummaryQuery(Guid ProjectId) : IRequest<Result<ProjectAiSummaryDto>>;
+public record GetProjectAiSummaryQuery(Guid ProjectId) : IRequest<Result<ProjectAiSummaryDto>>, IRequiresFeature
+{
+    public string FeatureKey => FeatureKeys.AiAssistant;
+}
 
 public class GetProjectAiSummaryQueryHandler : IRequestHandler<GetProjectAiSummaryQuery, Result<ProjectAiSummaryDto>>
 {

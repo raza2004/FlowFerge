@@ -70,15 +70,23 @@ public sealed class Sprint : SoftDeletableEntity
         if (Status != SprintStatus.Active)
             return Result.Failure(Error.Conflict("Sprint.CannotComplete", "Sprint must be Active to complete"));
 
+        if (retrospectiveNotes?.Length > 10000)
+            return Result.Failure(Error.Validation("Sprint.NotesTooLong", "Notes must be at most 10000 characters"));
+
         Status = SprintStatus.Completed;
         CompletedAt = DateTime.UtcNow;
-        RetrospectiveNotes = retrospectiveNotes;
+        RetrospectiveNotes = string.IsNullOrWhiteSpace(retrospectiveNotes) ? null : retrospectiveNotes.Trim();
         Touch();
         return Result.Success();
     }
 
+    public bool IsOpen => Status is SprintStatus.Planning or SprintStatus.Active;
+
     public Result Cancel()
     {
+        if (!IsOpen)
+            return Result.Failure(Error.Conflict("Sprint.CannotCancel", "Only a planned or active sprint can be cancelled"));
+
         Status = SprintStatus.Cancelled;
         Touch();
         return Result.Success();
@@ -86,13 +94,36 @@ public sealed class Sprint : SoftDeletableEntity
 
     public Result UpdateDetails(string name, string? goal, DateTime startDate, DateTime endDate)
     {
-        if (Status == SprintStatus.Completed || Status == SprintStatus.Cancelled)
+        if (!IsOpen)
             return Result.Failure(Error.Conflict("Sprint.Frozen", "Cannot edit completed/cancelled sprint"));
 
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 200)
+            return Result.Failure(Error.Validation("Sprint.InvalidName", "Name must be 1-200 chars"));
+
+        if (endDate <= startDate)
+            return Result.Failure(Error.Validation("Sprint.InvalidDates", "End date must be after start date"));
+
+        if ((endDate - startDate).TotalDays > 60)
+            return Result.Failure(Error.Validation("Sprint.TooLong", "Sprint cannot exceed 60 days"));
+
         Name = name.Trim();
-        Goal = goal;
+        Goal = string.IsNullOrWhiteSpace(goal) ? null : goal.Trim();
         StartDate = startDate;
         EndDate = endDate;
+        Touch();
+        return Result.Success();
+    }
+
+    /// <summary>Retrospective notes can be written or revised after the sprint ends.</summary>
+    public Result UpdateRetrospective(string? notes)
+    {
+        if (Status != SprintStatus.Completed)
+            return Result.Failure(Error.Conflict("Sprint.NotCompleted", "Retrospective notes belong to a completed sprint"));
+
+        if (notes?.Length > 10000)
+            return Result.Failure(Error.Validation("Sprint.NotesTooLong", "Notes must be at most 10000 characters"));
+
+        RetrospectiveNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         Touch();
         return Result.Success();
     }

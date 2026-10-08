@@ -1,4 +1,5 @@
-import { Component, ElementRef, ViewChild, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -10,10 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TasksService } from '../../../shared/services/tasks.service';
+import { FeaturesService, FEATURE_ATTACHMENTS } from '../../../shared/services/features.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantMemberDto } from '../../../shared/models/auth.models';
 import {
-  TaskDetailDto, TaskCommentDto, LabelDto, TASK_TYPES, TASK_PRIORITIES
+  TaskDetailDto, TaskCommentDto, LabelDto, AttachmentDto, MAX_ATTACHMENT_BYTES, TASK_TYPES, TASK_PRIORITIES
 } from '../../../shared/models/project.models';
 
 export interface TaskDetailDialogData {
@@ -41,10 +43,12 @@ const LABEL_COLORS = ['#6449E0', '#0EA97C', '#E5484D', '#F59E0B', '#0EA5E9', '#E
   ],
   templateUrl: './task-detail-dialog.component.html'
 })
-export class TaskDetailDialogComponent implements OnInit {
+export class TaskDetailDialogComponent implements OnInit, OnDestroy {
   private tasks = inject(TasksService);
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
+  features = inject(FeaturesService);
+  readonly FEATURE_ATTACHMENTS = FEATURE_ATTACHMENTS;
   ref = inject(MatDialogRef<TaskDetailDialogComponent>);
   data = inject<TaskDetailDialogData>(MAT_DIALOG_DATA);
 
@@ -113,6 +117,7 @@ export class TaskDetailDialogComponent implements OnInit {
       next: task => {
         this.task.set(task);
         this.resetForm(task);
+        this.loadThumbnails(task.attachments);
         this.loading.set(false);
       },
       error: () => {
@@ -262,6 +267,113 @@ export class TaskDetailDialogComponent implements OnInit {
       },
       error: err => this.showError(err, 'Could not add the subtask.')
     });
+  }
+
+  // ── Attachments ─────────────────────────────────────────────────────────
+
+  uploading = signal(false);
+  dragOver = signal(false);
+  /** attachment id -> blob: URL for image thumbnails. */
+  thumbnails = signal<Record<string, string>>({});
+  private requestedThumbs = new Set<string>();
+
+  ngOnDestroy() {
+    Object.values(this.thumbnails()).forEach(url => URL.revokeObjectURL(url));
+  }
+
+  private loadThumbnails(attachments: AttachmentDto[]) {
+    for (const a of attachments) {
+      if (!a.isPreviewableImage || this.requestedThumbs.has(a.id)) continue;
+      this.requestedThumbs.add(a.id);
+      this.tasks.downloadAttachment(a.id, true).subscribe({
+        next: blob => this.thumbnails.update(t => ({ ...t, [a.id]: URL.createObjectURL(blob) })),
+        error: () => this.requestedThumbs.delete(a.id)
+      });
+    }
+  }
+
+  onFilesPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.uploadFiles(Array.from(input.files ?? []));
+    input.value = '';
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.dragOver.set(false);
+    this.uploadFiles(Array.from(event.dataTransfer?.files ?? []));
+  }
+
+  private async uploadFiles(files: File[]) {
+    const task = this.task();
+    if (!task || files.length === 0) return;
+
+    const tooBig = files.filter(f => f.size > MAX_ATTACHMENT_BYTES);
+    const empty = files.filter(f => f.size === 0);
+    const valid = files.filter(f => f.size > 0 && f.size <= MAX_ATTACHMENT_BYTES);
+    if (tooBig.length) this.error.set(`${tooBig.map(f => f.name).join(', ')} is over the ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB limit.`);
+    else if (empty.length) this.error.set(`${empty.map(f => f.name).join(', ')} is empty.`);
+    if (valid.length === 0) return;
+
+    this.uploading.set(true);
+    // One at a time: keeps memory low and the list order predictable.
+    for (const file of valid) {
+      try {
+        const attachment = await firstValueFrom(this.tasks.uploadAttachment(task.id, file, this.data.boardId));
+        this.task.update(t => t && ({ ...t, attachments: [attachment, ...t.attachments] }));
+        this.loadThumbnails([attachment]);
+        this.changed();
+      } catch (err) {
+        this.showError(err as HttpErrorResponse, `Could not upload ${file.name}.`);
+        break;
+      }
+    }
+    this.uploading.set(false);
+  }
+
+  download(attachment: AttachmentDto) {
+    this.tasks.downloadAttachment(attachment.id, false).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = attachment.fileName;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: err => this.showError(err, 'Could not download that file.')
+    });
+  }
+
+  openImage(attachment: AttachmentDto) {
+    const url = this.thumbnails()[attachment.id];
+    if (url) window.open(url, '_blank', 'noopener');
+  }
+
+  deleteAttachment(attachment: AttachmentDto) {
+    const task = this.task();
+    if (!task) return;
+    this.tasks.deleteAttachment(attachment.id, task.id, this.data.boardId).subscribe({
+      next: () => {
+        this.task.update(t => t && ({ ...t, attachments: t.attachments.filter(a => a.id !== attachment.id) }));
+        this.changed();
+      },
+      error: err => this.showError(err, 'Could not delete that file.')
+    });
+  }
+
+  fileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  fileIcon(contentType: string): string {
+    if (contentType.startsWith('image/')) return 'image';
+    if (contentType === 'application/pdf') return 'picture_as_pdf';
+    if (contentType.startsWith('text/')) return 'description';
+    if (contentType.includes('zip') || contentType.includes('compressed')) return 'folder_zip';
+    return 'insert_drive_file';
   }
 
   // ── Time tracking ───────────────────────────────────────────────────────

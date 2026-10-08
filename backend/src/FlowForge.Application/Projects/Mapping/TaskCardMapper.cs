@@ -17,6 +17,7 @@ public static class TaskCardMapper
         var allTasks = board.Lists.SelectMany(l => l.Tasks).ToList();
         var assigneeIds = allTasks.Where(t => t.AssigneeId.HasValue).Select(t => t.AssigneeId!.Value);
         var names = (await uow.Users.GetByIdsAsync(assigneeIds, ct)).ToDictionary(u => u.Id, u => u.FullName);
+        var sprintByTask = allTasks.ToDictionary(t => t.Id, t => t.SprintId);
         var subtaskCounts = allTasks
             .Where(t => t.ParentTaskId.HasValue)
             .GroupBy(t => t.ParentTaskId!.Value)
@@ -41,7 +42,10 @@ public static class TaskCardMapper
                         .ToList(),
                     t.ParentTaskId,
                     subtaskCounts.GetValueOrDefault(t.Id),
-                    t.AttachmentCount
+                    t.AttachmentCount,
+                    // Subtasks have no sprint of their own; they show with their parent's.
+                    t.ParentTaskId.HasValue ? sprintByTask.GetValueOrDefault(t.ParentTaskId.Value) : t.SprintId,
+                    t.StoryPoints
                 )).ToList(),
                 l.IsDoneColumn
             ))

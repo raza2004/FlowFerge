@@ -37,6 +37,13 @@ public class AiController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("projects/{projectId:guid}/ai/blockers")]
+    public async Task<IActionResult> ProjectBlockers(Guid projectId)
+    {
+        var result = await _mediator.Send(new GetProjectBlockersQuery(projectId));
+        return result.ToActionResult();
+    }
+
     [HttpGet("projects/{projectId:guid}/ai/summary")]
     public async Task<IActionResult> ProjectSummary(Guid projectId)
     {

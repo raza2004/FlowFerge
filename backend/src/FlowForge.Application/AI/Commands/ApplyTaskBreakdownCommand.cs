@@ -1,3 +1,4 @@
+using FlowForge.Application.Features;
 using FluentValidation;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Domain.Common;
@@ -12,7 +13,10 @@ namespace FlowForge.Application.AI.Commands;
 /// in the UI before calling this) into real ProjectTask rows under the parent task -
 /// this is what makes the "AI as a feature" claim literal instead of decorative text.
 /// </summary>
-public record ApplyTaskBreakdownCommand(Guid ParentTaskId, List<string> SubtaskTitles) : IRequest<Result<int>>;
+public record ApplyTaskBreakdownCommand(Guid ParentTaskId, List<string> SubtaskTitles) : IRequest<Result<int>>, IRequiresFeature
+{
+    public string FeatureKey => FeatureKeys.AiAssistant;
+}
 
 public class ApplyTaskBreakdownCommandValidator : AbstractValidator<ApplyTaskBreakdownCommand>
 {

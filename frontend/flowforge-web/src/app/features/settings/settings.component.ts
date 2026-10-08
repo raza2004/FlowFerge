@@ -13,31 +13,31 @@ import { SettingsService } from '../../shared/services/settings.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatSlideToggleModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="max-w-3xl mx-auto px-8 py-10">
-      <h1 class="text-3xl font-display font-semibold text-zinc-900 mb-2">Settings</h1>
-      <p class="text-zinc-500 mb-8">Manage your workspace and account</p>
+    <div class="max-w-6xl mx-auto px-8 py-8">
+      <h1 class="text-3xl font-display font-semibold text-ink mb-2">Settings</h1>
+      <p class="text-ink-muted mb-8">Manage your workspace and account</p>
 
-      <div class="space-y-4">
-        <div class="bg-white rounded-xl border border-zinc-200 p-6">
-          <h2 class="font-display font-semibold text-zinc-900 mb-4">Workspace</h2>
+      <div class="max-w-3xl space-y-4">
+        <div class="bg-white rounded-xl border border-line p-6">
+          <h2 class="font-display font-semibold text-ink mb-4">Workspace</h2>
           <div class="grid grid-cols-2 gap-4 text-sm mb-5">
             <div>
-              <div class="text-zinc-500 text-xs mb-1">Name</div>
-              <div class="text-zinc-900">{{ auth.tenant()?.name }}</div>
+              <div class="text-ink-muted text-xs mb-1">Name</div>
+              <div class="text-ink">{{ auth.tenant()?.name }}</div>
             </div>
             <div>
-              <div class="text-zinc-500 text-xs mb-1">URL slug</div>
-              <div class="text-zinc-900 font-mono">{{ auth.tenant()?.slug }}</div>
+              <div class="text-ink-muted text-xs mb-1">URL slug</div>
+              <div class="text-ink font-mono">{{ auth.tenant()?.slug }}</div>
             </div>
             <div>
-              <div class="text-zinc-500 text-xs mb-1">Plan</div>
-              <div class="text-zinc-900">{{ auth.tenant()?.planTier }}</div>
+              <div class="text-ink-muted text-xs mb-1">Plan</div>
+              <div class="text-ink">{{ auth.tenant()?.planTier }}</div>
             </div>
           </div>
 
-          <div class="border-t border-zinc-100 pt-4">
-            <div class="text-sm font-medium text-zinc-900 mb-1">Slack notifications</div>
-            <p class="text-xs text-zinc-500 mb-3">
+          <div class="border-t border-line/60 pt-4">
+            <div class="text-sm font-medium text-ink mb-1">Slack notifications</div>
+            <p class="text-xs text-ink-muted mb-3">
               Paste an
               <a href="https://api.slack.com/messaging/webhooks" target="_blank" class="text-forge-600 hover:underline">incoming webhook URL</a>
               to also post workspace alerts (like automation triggers) into a Slack channel.
@@ -49,7 +49,7 @@ import { SettingsService } from '../../shared/services/settings.service';
               <button mat-stroked-button [disabled]="slackSaving()" (click)="saveSlackWebhook()">Save</button>
               @if (auth.tenant()?.slackWebhookUrl) {
                 <button mat-icon-button matTooltip="Remove" [disabled]="slackSaving()" (click)="clearSlackWebhook()">
-                  <mat-icon class="!text-base text-zinc-400">close</mat-icon>
+                  <mat-icon class="!text-base text-ink-faint">close</mat-icon>
                 </button>
               }
             </div>
@@ -58,23 +58,23 @@ import { SettingsService } from '../../shared/services/settings.service';
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-zinc-200 p-6">
-          <h2 class="font-display font-semibold text-zinc-900 mb-4">Account</h2>
+        <div class="bg-white rounded-xl border border-line p-6">
+          <h2 class="font-display font-semibold text-ink mb-4">Account</h2>
           <div class="grid grid-cols-2 gap-4 text-sm mb-5">
             <div>
-              <div class="text-zinc-500 text-xs mb-1">Name</div>
-              <div class="text-zinc-900">{{ auth.user()?.fullName }}</div>
+              <div class="text-ink-muted text-xs mb-1">Name</div>
+              <div class="text-ink">{{ auth.user()?.fullName }}</div>
             </div>
             <div>
-              <div class="text-zinc-500 text-xs mb-1">Email</div>
-              <div class="text-zinc-900">{{ auth.user()?.email }}</div>
+              <div class="text-ink-muted text-xs mb-1">Email</div>
+              <div class="text-ink">{{ auth.user()?.email }}</div>
             </div>
           </div>
 
-          <div class="border-t border-zinc-100 pt-4 flex items-center justify-between">
+          <div class="border-t border-line/60 pt-4 flex items-center justify-between">
             <div>
-              <div class="text-sm font-medium text-zinc-900">Email notifications</div>
-              <p class="text-xs text-zinc-500">Get emailed for the same things you'd see in your Inbox.</p>
+              <div class="text-sm font-medium text-ink">Email notifications</div>
+              <p class="text-xs text-ink-muted">Get emailed for the same things you'd see in your Inbox.</p>
             </div>
             <mat-slide-toggle [checked]="auth.user()?.emailNotificationsEnabled ?? true"
                                [disabled]="emailPrefSaving()"

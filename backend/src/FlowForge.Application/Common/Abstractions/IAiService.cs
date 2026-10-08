@@ -16,6 +16,10 @@ public record ProjectSummaryInput(
     List<string> OverdueTaskTitles
 );
 
+/// <param name="SignalLines">Rule-based findings, one human-readable line each (already computed, not for the model to decide).</param>
+public record BlockerAnalysisInput(string ProjectName, int OpenTasks, List<string> SignalLines);
+public record BlockerAnalysis(string Summary, List<string> Recommendations);
+
 /// <summary>
 /// Abstraction over the AI provider (implemented with the OpenAI SDK in Infrastructure).
 /// Application code never touches OpenAI types directly, and every method returns a
@@ -29,4 +33,6 @@ public interface IAiService
     Task<Result<AssigneeSuggestion>> SuggestAssigneeAsync(string taskTitle, string? taskDescription, List<AssigneeCandidate> candidates, CancellationToken ct = default);
 
     Task<Result<string>> SummarizeProjectAsync(ProjectSummaryInput input, CancellationToken ct = default);
+
+    Task<Result<BlockerAnalysis>> AnalyzeBlockersAsync(BlockerAnalysisInput input, CancellationToken ct = default);
 }

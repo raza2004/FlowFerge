@@ -1,3 +1,4 @@
+using FlowForge.Application.Features;
 using FlowForge.Application.Common.Abstractions;
 using FlowForge.Application.Identity.Services;
 using FlowForge.Application.Projects.DTOs;
@@ -10,7 +11,10 @@ using Microsoft.Extensions.Logging;
 namespace FlowForge.Application.Projects.Attachments;
 
 public record UploadAttachmentCommand(Guid TaskId, string FileName, string ContentType, long Size, Stream Content)
-    : IRequest<Result<AttachmentDto>>;
+    : IRequest<Result<AttachmentDto>>, IRequiresFeature
+{
+    public string FeatureKey => FeatureKeys.Attachments;
+}
 
 /// <summary>Deletes an attachment. Allowed for the uploader and for workspace owners/admins.</summary>
 public record DeleteAttachmentCommand(Guid AttachmentId) : IRequest<Result>;

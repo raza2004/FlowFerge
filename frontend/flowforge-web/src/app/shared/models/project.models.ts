@@ -49,6 +49,9 @@ export interface TaskCardDto {
   labels?: LabelDto[] | null;
   parentTaskId?: string | null;
   subtaskCount?: number;
+  attachmentCount?: number;
+  sprintId?: string | null;
+  storyPoints?: number | null;
 }
 
 export interface LabelDto {
@@ -107,6 +110,7 @@ export interface TaskDetailDto {
   comments: TaskCommentDto[];
   actualHours: number | null;
   timeEntries: TimeEntryDto[];
+  attachments: AttachmentDto[];
 }
 
 export interface UpdateTaskRequest {
@@ -155,6 +159,20 @@ export interface ListSettings {
   wipLimit: number | null;
   isDoneColumn: boolean;
 }
+
+export interface AttachmentDto {
+  id: string;
+  fileName: string;
+  contentType: string;
+  fileSizeBytes: number;
+  uploadedById: string;
+  uploadedByName: string;
+  createdAt: string;
+  isPreviewableImage: boolean;
+}
+
+/** Matches AttachmentRules.MaxFileSizeBytes on the server. */
+export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 
 export interface TimeEntryDto {
   id: string;
@@ -206,4 +224,59 @@ export interface MyTaskDto {
   dueDate: string | null;
   isOverdue: boolean;
   createdAt: string;
+}
+
+export interface SprintDto {
+  id: string;
+  name: string;
+  goal: string | null;
+  status: 'Planning' | 'Active' | 'Completed' | 'Cancelled';
+  startDate: string;
+  endDate: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  retrospectiveNotes: string | null;
+  taskCount: number;
+  doneCount: number;
+  totalPoints: number;
+  donePoints: number;
+}
+
+export interface SprintTaskDto {
+  id: string;
+  taskNumber: string;
+  title: string;
+  type: string;
+  priority: string;
+  status: string;
+  isCompleted: boolean;
+  storyPoints: number | null;
+  assigneeId: string | null;
+  assigneeName: string | null;
+  dueDate: string | null;
+}
+
+export interface BurndownPoint {
+  date: string;
+  ideal: number;
+  remaining: number | null;
+}
+
+export interface BurndownDto {
+  unit: 'points' | 'tasks';
+  total: number;
+  points: BurndownPoint[];
+}
+
+export interface SprintDetailDto {
+  sprint: SprintDto;
+  tasks: SprintTaskDto[];
+  burndown: BurndownDto;
+}
+
+export interface SprintForm {
+  name: string;
+  goal: string | null;
+  startDate: string;
+  endDate: string;
 }

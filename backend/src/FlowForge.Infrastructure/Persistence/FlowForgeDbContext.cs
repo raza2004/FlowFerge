@@ -31,6 +31,7 @@ public class FlowForgeDbContext : DbContext
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<FlowForge.Domain.Features.FeatureFlag> FeatureFlags => Set<FlowForge.Domain.Features.FeatureFlag>();
 
     // Projects
     public DbSet<Project> Projects => Set<Project>();

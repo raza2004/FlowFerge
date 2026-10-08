@@ -96,14 +96,19 @@ services:
       MinIO__Endpoint: "minio:9000"
       MinIO__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
       MinIO__SecretKey: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
-      Email__SmtpHost: mailhog
-      Email__SmtpPort: "1025"
+      Email__SmtpHost: ${EMAIL_SMTP_HOST:-mailhog}
+      Email__SmtpPort: ${EMAIL_SMTP_PORT:-1025}
+      Email__EnableSsl: ${EMAIL_ENABLE_SSL:-false}
+      Email__Username: ${EMAIL_USERNAME:-}
+      Email__Password: ${EMAIL_PASSWORD:-}
+      Email__FromAddress: ${EMAIL_FROM_ADDRESS:-noreply@flowforge.local}
       Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env - copy .env.example to get started, at least 32 chars}
       Jwt__Issuer: ${JWT_ISSUER:-FlowForge}
       Jwt__Audience: ${JWT_AUDIENCE:-FlowForgeUsers}
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__Model: ${OPENAI_MODEL:-google/gemma-4-31b-it:free}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
+      OpenAI__FallbackModels: ${OPENAI_FALLBACK_MODELS:-}
     ports:
       - "5076:8080"
     depends_on:

@@ -87,6 +87,44 @@ public record AddCommentRequest(string Content, List<Guid>? MentionedUserIds);
 public record UpdateListRequest(string Name, string Color, int? WipLimit, bool IsDoneColumn);
 public record ReorderListsRequest(List<Guid> ListIds);
 public record LogTimeRequest(double Hours, DateTime? WorkDate, string? Note);
+public record CreateSprintRequest(string Name, string? Goal, DateTime StartDate, DateTime EndDate);
+public record UpdateSprintRequest(string Name, string? Goal, DateTime StartDate, DateTime EndDate);
+public record CompleteSprintRequest(string? RetrospectiveNotes, Guid? MoveIncompleteToSprintId);
+public record UpdateRetrospectiveRequest(string? Notes);
+public record AssignSprintRequest(Guid? SprintId);
+
+public record SprintDto(
+    Guid Id,
+    string Name,
+    string? Goal,
+    string Status,
+    DateTime StartDate,
+    DateTime EndDate,
+    DateTime? StartedAt,
+    DateTime? CompletedAt,
+    string? RetrospectiveNotes,
+    int TaskCount,
+    int DoneCount,
+    int TotalPoints,
+    int DonePoints
+);
+
+public record SprintTaskDto(
+    Guid Id,
+    string TaskNumber,
+    string Title,
+    string Type,
+    string Priority,
+    string Status,
+    bool IsCompleted,
+    int? StoryPoints,
+    Guid? AssigneeId,
+    string? AssigneeName,
+    DateTime? DueDate
+);
+
+public record SprintDetailDto(SprintDto Sprint, List<SprintTaskDto> Tasks, FlowForge.Application.Projects.Sprints.BurndownDto Burndown);
+
 public record AttachmentDto(
     Guid Id,
     string FileName,
@@ -184,7 +222,9 @@ public record TaskCardDto(
     List<LabelDto>? Labels = null,
     Guid? ParentTaskId = null,
     int SubtaskCount = 0,
-    int AttachmentCount = 0
+    int AttachmentCount = 0,
+    Guid? SprintId = null,
+    int? StoryPoints = null
 );
 
 public record DashboardStatsDto(

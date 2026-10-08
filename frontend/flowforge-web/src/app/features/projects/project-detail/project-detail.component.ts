@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -14,9 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogRef } from '@angular/material/dialog';
-import {
-  CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem
-} from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ProjectsService } from '../../../shared/services/projects.service';
 import { BoardsService } from '../../../shared/services/boards.service';
@@ -33,7 +31,10 @@ import { TaskDetailDialogComponent, TaskDetailDialogData } from './task-detail-d
 import {
   ListSettingsDialogComponent, ListSettingsDialogData, DeleteListDialogComponent, DeleteListDialogData
 } from './list-dialogs.component';
-import { ListSettings } from '../../../shared/models/project.models';
+import { ListSettings, SprintDto } from '../../../shared/models/project.models';
+import { ProjectBlockersDto } from '../../../shared/models/ai.models';
+import { SprintsService } from '../../../shared/services/sprints.service';
+import { FeaturesService, FEATURE_AI, FEATURE_SPRINTS } from '../../../shared/services/features.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -118,7 +119,7 @@ export interface AutomationDialogData {
           <input matInput formControlName="name" placeholder="e.g. Notify on Done">
         </mat-form-field>
 
-        <div class="flex items-center gap-2 text-sm text-zinc-500">
+        <div class="flex items-center gap-2 text-sm text-ink-muted">
           <span>When a task is moved to</span>
         </div>
         <mat-form-field appearance="outline" class="w-full">
@@ -130,7 +131,7 @@ export interface AutomationDialogData {
           </mat-select>
         </mat-form-field>
 
-        <div class="flex items-center gap-2 text-sm text-zinc-500">
+        <div class="flex items-center gap-2 text-sm text-ink-muted">
           <span>then</span>
         </div>
         <mat-form-field appearance="outline" class="w-full">
@@ -191,6 +192,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private aiService = inject(AiService);
   private signalr = inject(SignalrService);
+  private sprintsService = inject(SprintsService);
+  features = inject(FeaturesService);
+  readonly FEATURE_AI = FEATURE_AI;
+  readonly FEATURE_SPRINTS = FEATURE_SPRINTS;
   private dialog = inject(MatDialog);
 
   project = signal<ProjectDto | null>(null);
@@ -203,6 +208,33 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   aiSummary = signal<string | null>(null);
   aiSummaryLoading = signal(false);
   aiSummaryError = signal<string | null>(null);
+
+  blockers = signal<ProjectBlockersDto | null>(null);
+  blockersLoading = signal(false);
+  blockersError = signal<string | null>(null);
+
+  scanForBlockers() {
+    const project = this.project();
+    if (!project) return;
+
+    this.blockersLoading.set(true);
+    this.blockersError.set(null);
+    this.aiService.getProjectBlockers(project.id).subscribe({
+      next: result => {
+        this.blockers.set(result);
+        this.blockersLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.blockersError.set(err.error?.detail ?? 'Could not scan for blockers right now.');
+        this.blockersLoading.set(false);
+      }
+    });
+  }
+
+  severityClass(severity: string): string {
+    return severity === 'High' ? 'bg-red-100 text-red-700'
+      : severity === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-sunken text-ink-soft';
+  }
 
   private realtimeSubs = new Subscription();
   private reloadTimer?: ReturnType<typeof setTimeout>;
@@ -219,18 +251,27 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     this.projectsService.getById(id).subscribe(p => this.project.set(p));
     this.automationsService.getForProject(id).subscribe(rules => this.automations.set(rules));
     this.dashboardService.getTeamMembers().subscribe(members => this.members.set(members));
+    this.loadActiveSprint(id);
 
     this.boardsService.getProjectBoards(id).subscribe(async boards => {
       if (boards.length > 0) {
         this.board.set(boards[0]);
-        await this.signalr.startConnection();
-        await this.signalr.joinBoard(boards[0].id);
+        // Show the board right away; live updates are a bonus, so a failing realtime
+        // connection must never leave the page stuck on its loading skeleton.
+        this.isLoading.set(false);
+        try {
+          await this.signalr.startConnection();
+          await this.signalr.joinBoard(boards[0].id);
+        } catch {
+          return;
+        }
 
         this.realtimeSubs.add(this.signalr.taskMoved$.subscribe(event => this.applyRemoteMove(event)));
         this.realtimeSubs.add(this.signalr.taskCreated$.subscribe(task => this.applyRemoteCreate(task)));
         this.realtimeSubs.add(this.signalr.taskUpdated$.subscribe(() => this.scheduleReload()));
         this.realtimeSubs.add(this.signalr.taskDeleted$.subscribe(e => this.removeTaskLocally(e.taskId)));
         this.realtimeSubs.add(this.signalr.boardChanged$.subscribe(() => this.scheduleReload()));
+        return;
       }
       this.isLoading.set(false);
     });
@@ -243,6 +284,14 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     if (b) await this.signalr.leaveBoard(b.id);
   }
 
+  private loadActiveSprint(projectId: string) {
+    this.sprintsService.getSprints(projectId).subscribe(sprints => {
+      const active = sprints.find(s => s.status === 'Active') ?? null;
+      this.activeSprint.set(active);
+      if (!active) this.sprintFilter.set('all');
+    });
+  }
+
   onDragStarted() {
     this.justDragged = true;
   }
@@ -253,16 +302,21 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   }
 
   openTaskDetail(task: TaskCardDto) {
+    if (this.justDragged) return;
+    this.openTaskById(task.id);
+  }
+
+  openTaskById(taskId: string) {
     const board = this.board();
     const project = this.project();
-    if (this.justDragged || !board || !project) return;
+    if (!board || !project) return;
 
     this.dialog.open(TaskDetailDialogComponent, {
       width: '880px',
       maxWidth: '95vw',
       autoFocus: false,
       data: {
-        taskId: task.id,
+        taskId,
         boardId: board.id,
         projectId: project.id,
         members: this.members(),
@@ -368,19 +422,79 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     return name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
   }
 
+  activeSprint = signal<SprintDto | null>(null);
+  sprintFilter = signal<'all' | 'sprint'>('all');
+
+  /** Counts for the stats strip, derived from the board as it's currently loaded. */
+  stats = computed(() => {
+    const lists = this.board()?.lists ?? [];
+    let total = 0, done = 0, overdue = 0, unassigned = 0;
+    for (const list of lists) {
+      for (const task of list.tasks) {
+        total++;
+        if (list.isDoneColumn) { done++; continue; }
+        if (task.isOverdue) overdue++;
+        if (!task.assigneeId) unassigned++;
+      }
+    }
+    return { total, done, open: total - done, overdue, unassigned };
+  });
+
+  /** With an active sprint the headline is its points (or tasks, if nothing is estimated); otherwise the whole board. */
+  private usesSprintPoints = computed(() => (this.activeSprint()?.totalPoints ?? 0) > 0);
+  progressDone = computed(() => {
+    const sprint = this.activeSprint();
+    if (!sprint) return this.stats().done;
+    return this.usesSprintPoints() ? sprint.donePoints : sprint.doneCount;
+  });
+  progressTotal = computed(() => {
+    const sprint = this.activeSprint();
+    if (!sprint) return this.stats().total;
+    return this.usesSprintPoints() ? sprint.totalPoints : sprint.taskCount;
+  });
+  progressPercent = computed(() => {
+    const total = this.progressTotal();
+    return total > 0 ? Math.min(100, (this.progressDone() / total) * 100) : 0;
+  });
+
+  sprintDaysLeft = computed(() => {
+    const sprint = this.activeSprint();
+    if (!sprint) return 0;
+    return Math.max(0, Math.ceil((Date.parse(sprint.endDate) - Date.now()) / 86_400_000));
+  });
+
+  /**
+   * The cards to show in a list. Returns the list's own array when no filter applies, so
+   * Angular sees a stable reference; with the sprint filter on, only the active sprint's cards.
+   */
+  visibleTasks(list: BoardListDto): TaskCardDto[] {
+    const sprint = this.activeSprint();
+    if (this.sprintFilter() !== 'sprint' || !sprint) return list.tasks;
+    return list.tasks.filter(t => t.sprintId === sprint.id);
+  }
+
   async onDrop(event: CdkDragDrop<TaskCardDto[]>, targetList: BoardListDto) {
     const board = this.board();
     if (!board) return;
 
-    if (event.previousContainer === event.container) {
-      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-    } else {
-      transferArrayItem(event.previousContainer.data, event.container.data,
-        event.previousIndex, event.currentIndex);
-    }
+    const moved = event.item.data as TaskCardDto;
+    const sourceList = board.lists.find(l => l.tasks.some(t => t.id === moved.id));
+    if (!sourceList) return;
 
-    const movedTask = event.container.data[event.currentIndex];
-    this.tasksService.moveTask(movedTask.id, targetList.id, event.currentIndex, board.id).subscribe();
+    // The drop index counts only the cards on screen. With the sprint filter on, that's not the
+    // card's real place in the list, so anchor on the card it landed in front of instead.
+    const visibleWithoutMoved = this.visibleTasks(targetList).filter(t => t.id !== moved.id);
+    const anchor = visibleWithoutMoved[event.currentIndex];
+
+    sourceList.tasks = sourceList.tasks.filter(t => t.id !== moved.id);
+    const targetTasks = targetList.tasks;
+    const insertAt = anchor ? targetTasks.findIndex(t => t.id === anchor.id) : targetTasks.length;
+    targetTasks.splice(insertAt, 0, moved);
+    this.board.set({ ...board });
+
+    this.tasksService.moveTask(moved.id, targetList.id, insertAt, board.id).subscribe({
+      error: () => this.reloadBoard()
+    });
   }
 
   openNewTaskDialog(list: BoardListDto) {
@@ -526,15 +640,27 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Soft tinted chip: color carries the meaning (how urgent), not decoration. */
   priorityColor(priority: string): string {
     return ({
-      'Critical': 'bg-red-100 text-red-800',
-      'Highest':  'bg-red-100 text-red-800',
-      'High':     'bg-orange-100 text-orange-800',
-      'Medium':   'bg-yellow-100 text-yellow-800',
-      'Low':      'bg-blue-100 text-blue-800',
-      'Lowest':   'bg-gray-100 text-gray-800'
-    } as Record<string, string>)[priority] ?? 'bg-gray-100 text-gray-800';
+      'Critical': 'bg-tone-crit-bg text-tone-crit-fg border-tone-crit-line',
+      'Highest':  'bg-tone-crit-bg text-tone-crit-fg border-tone-crit-line',
+      'High':     'bg-tone-high-bg text-tone-high-fg border-tone-high-line',
+      'Medium':   'bg-tone-med-bg text-tone-med-fg border-tone-med-line',
+      'Low':      'bg-tone-low-bg text-tone-low-fg border-tone-low-line',
+      'Lowest':   'bg-sunken text-ink-muted border-line'
+    } as Record<string, string>)[priority] ?? 'bg-sunken text-ink-muted border-line';
+  }
+
+  priorityLabel(priority: string): string {
+    return ({
+      'Critical': 'P0 Critical',
+      'Highest':  'P0 Highest',
+      'High':     'P1 High',
+      'Medium':   'P2 Med',
+      'Low':      'P3 Low',
+      'Lowest':   'P4 Lowest'
+    } as Record<string, string>)[priority] ?? priority;
   }
 
   typeIcon(type: string): string {

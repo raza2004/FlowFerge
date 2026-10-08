@@ -1,4 +1,5 @@
 using FlowForge.Domain.Auditing;
+using FlowForge.Domain.Features.Repositories;
 using FlowForge.Domain.Identity.Repositories;
 using FlowForge.Domain.Notifications.Repositories;
 using FlowForge.Domain.Projects.Repositories;
@@ -14,6 +15,7 @@ public interface IUnitOfWork
     IMembershipRepository Memberships { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IInvitationRepository Invitations { get; }
+    IFeatureFlagRepository FeatureFlags { get; }
 
     // Projects context repositories
     IProjectRepository Projects { get; }

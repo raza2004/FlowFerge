@@ -90,11 +90,8 @@ public class CreateInvitationCommandHandler : IRequestHandler<CreateInvitationCo
         var sendResult = await _email.SendAsync(
             email.Value,
             $"{inviterName} invited you to {tenant?.Name ?? "a workspace"} on FlowForge",
-            $"<p><strong>{System.Net.WebUtility.HtmlEncode(inviterName)}</strong> invited you to join " +
-            $"<strong>{System.Net.WebUtility.HtmlEncode(tenant?.Name ?? "their workspace")}</strong> on FlowForge " +
-            $"as a {invitation.Role}.</p>" +
-            $"<p><a href=\"{url}\">Accept the invitation</a></p>" +
-            $"<p style=\"color:#888;font-size:12px\">This link expires on {invitation.ExpiresAt:MMMM d, yyyy}.</p>",
+            InvitationEmailTemplate.Render(
+                inviterName, tenant?.Name ?? "their workspace", invitation.Role.ToString(), url, invitation.ExpiresAt),
             ct);
         if (sendResult.IsFailure)
             _logger.LogWarning("Invitation email to {Email} failed: {Error}", email.Value, sendResult.Error.Message);

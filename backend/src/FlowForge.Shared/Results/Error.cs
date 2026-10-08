@@ -10,6 +10,7 @@ public sealed record Error(string Code, string Message, ErrorType Type)
     public static Error Conflict(string code, string message) => new(code, message, ErrorType.Conflict);
     public static Error Unauthorized(string code, string message) => new(code, message, ErrorType.Unauthorized);
     public static Error Forbidden(string code, string message) => new(code, message, ErrorType.Forbidden);
+    public static Error TooManyRequests(string code, string message) => new(code, message, ErrorType.TooManyRequests);
 }
 
 public enum ErrorType
@@ -19,5 +20,6 @@ public enum ErrorType
     NotFound = 2,
     Conflict = 3,
     Unauthorized = 4,
-    Forbidden = 5
+    Forbidden = 5,
+    TooManyRequests = 6
 }

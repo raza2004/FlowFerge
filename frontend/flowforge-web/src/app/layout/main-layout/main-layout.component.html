@@ -1,127 +1,160 @@
-<div class="flex h-screen bg-[#FAFAF9]">
-  <!-- Sidebar -->
-  <aside class="w-60 bg-[#18181B] text-zinc-300 flex flex-col">
+<div class="flex flex-col h-screen bg-canvas text-ink">
+  <!-- Mobile top bar -->
+  <header class="md:hidden flex items-center gap-3 h-12 px-3 flex-shrink-0 bg-panel border-b border-line">
+    <button type="button" (click)="menuOpen.set(true)" aria-label="Open menu"
+            class="w-9 h-9 -ml-1 rounded-lg flex items-center justify-center text-ink-muted hover:bg-sunken">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="w-6 h-6 rounded-md bg-gradient-to-br from-forge-500 to-forge-700 flex items-center justify-center text-white font-bold text-xs font-display">{{ workspaceInitial }}</div>
+    <span class="text-sm font-semibold truncate">{{ auth.tenant()?.name }}</span>
+  </header>
 
-    <!-- Workspace header -->
-    <div class="px-4 py-4 border-b border-zinc-800">
-      <button mat-button [matMenuTriggerFor]="workspaceMenu" (menuOpened)="loadWorkspaces()"
-              class="!w-full !justify-start !text-left !px-2 !py-2 !text-white hover:!bg-zinc-800">
-        <div class="flex items-center gap-2.5 w-full">
-          <div class="w-8 h-8 rounded-md bg-forge-500 flex items-center justify-center text-zinc-900 font-bold text-sm font-display">
-            {{ workspaceInitial }}
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-semibold text-white truncate">
-              {{ auth.tenant()?.name }}
+  @if (menuOpen()) {
+    <div class="md:hidden fixed inset-0 z-30 bg-black/40" (click)="menuOpen.set(false)"></div>
+  }
+
+  <div class="flex flex-1 min-h-0">
+
+    <!-- Sidebar -->
+    <aside class="fixed md:static inset-y-0 left-0 z-40 w-64 md:w-60 flex-shrink-0 bg-panel border-r border-line flex flex-col transition-transform duration-200 md:translate-x-0"
+           [class.-translate-x-full]="!menuOpen()">
+
+      <!-- Workspace header -->
+      <div class="px-3 py-3 border-b border-line">
+        <button mat-button [matMenuTriggerFor]="workspaceMenu" (menuOpened)="loadWorkspaces()"
+                class="!w-full !justify-start !text-left !px-2 !py-2 hover:!bg-sunken">
+          <div class="flex items-center gap-2.5 w-full">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-forge-500 to-forge-700 flex items-center justify-center text-white font-bold text-sm font-display shadow-card">
+              {{ workspaceInitial }}
             </div>
-            <div class="text-[11px] text-zinc-500 truncate">{{ auth.tenant()?.planTier }} plan</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-ink truncate">{{ auth.tenant()?.name }}</div>
+              <div class="text-[11px] text-ink-muted truncate">{{ auth.tenant()?.planTier }} plan</div>
+            </div>
+            <mat-icon class="!text-base !text-ink-faint">unfold_more</mat-icon>
           </div>
-          <mat-icon class="!text-base !text-zinc-500">unfold_more</mat-icon>
-        </div>
-      </button>
-      <mat-menu #workspaceMenu="matMenu">
-        <div class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Workspaces</div>
-        @for (w of workspaces(); track w.tenantId) {
-          <button mat-menu-item [disabled]="switching()" (click)="switchWorkspace(w.tenantId, w.isCurrent)">
-            <mat-icon>{{ w.isCurrent ? 'check' : 'apartment' }}</mat-icon>
-            <span>{{ w.name }}</span>
-            <span class="ml-2 text-xs text-zinc-400">{{ w.role }}</span>
-          </button>
-        } @empty {
-          <div class="px-4 py-2 text-sm text-zinc-400">Loading...</div>
-        }
-        <button mat-menu-item routerLink="/team">
-          <mat-icon>person_add</mat-icon>
-          <span>Invite people</span>
         </button>
-      </mat-menu>
-    </div>
-
-    <!-- Search -->
-    <div class="px-3 py-3">
-      <div class="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/60 rounded-md text-xs text-zinc-400 cursor-pointer hover:bg-zinc-800">
-        <mat-icon class="!text-base !w-4 !h-4">search</mat-icon>
-        <span>Search</span>
-        <kbd class="ml-auto text-[10px] text-zinc-500 font-mono">⌘K</kbd>
-      </div>
-    </div>
-
-    <!-- Primary nav -->
-    <nav class="px-2 mt-1 relative">
-      <div class="absolute left-2 right-2 rounded-md bg-zinc-800 transition-all duration-300 ease-out pointer-events-none"
-           [style.top.px]="primaryIndicator().top"
-           [style.height.px]="primaryIndicator().height"
-           [style.opacity]="primaryIndicator().visible ? 1 : 0"></div>
-      @for (item of primaryNav; track item.path; let i = $index) {
-        <a [routerLink]="item.path" routerLinkActive="!text-white"
-           (isActiveChange)="onPrimaryActive($event, i)"
-           #primaryItem
-           class="relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/40 hover:text-white transition-colors">
-          <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
-          <span class="flex-1">{{ item.label }}</span>
-          @if (item.path === '/inbox' && notifications.unreadCount() > 0) {
-            <span class="text-[10px] bg-forge-500 text-zinc-900 px-1.5 rounded font-semibold"
-                  [class.animate-bounce]="badgeBump()">
-              {{ notifications.unreadCount() }}
-            </span>
+        <mat-menu #workspaceMenu="matMenu">
+          <div class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Workspaces</div>
+          @for (w of workspaces(); track w.tenantId) {
+            <button mat-menu-item [disabled]="switching()" (click)="switchWorkspace(w.tenantId, w.isCurrent)">
+              <mat-icon>{{ w.isCurrent ? 'check' : 'apartment' }}</mat-icon>
+              <span>{{ w.name }}</span>
+              <span class="ml-2 text-xs text-zinc-400">{{ w.role }}</span>
+            </button>
+          } @empty {
+            <div class="px-4 py-2 text-sm text-zinc-400">Loading...</div>
           }
-        </a>
-      }
-    </nav>
-
-    <!-- Workspace section -->
-    <div class="mt-6 px-2">
-      <div class="px-3 mb-1 text-[11px] uppercase tracking-wider text-zinc-500 font-medium">
-        Workspace
+          <button mat-menu-item routerLink="/team">
+            <mat-icon>person_add</mat-icon>
+            <span>Invite people</span>
+          </button>
+        </mat-menu>
       </div>
-      <nav class="relative">
-        <div class="absolute left-0 right-0 rounded-md bg-zinc-800 transition-all duration-300 ease-out pointer-events-none"
-             [style.top.px]="workspaceIndicator().top"
-             [style.height.px]="workspaceIndicator().height"
-             [style.opacity]="workspaceIndicator().visible ? 1 : 0"></div>
-        @for (item of workspaceNav; track item.path; let i = $index) {
-          <a [routerLink]="item.path" routerLinkActive="!text-white"
-             (isActiveChange)="onWorkspaceActive($event, i)"
-             #workspaceItem
-             class="relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zinc-400 hover:bg-zinc-800/40 hover:text-white transition-colors">
-            <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
-            <span>{{ item.label }}</span>
-          </a>
-        }
-      </nav>
-    </div>
 
-    <div class="flex-1"></div>
+      <div class="flex-1 overflow-y-auto py-3">
 
-    <!-- User menu at bottom -->
-    <div class="p-3 border-t border-zinc-800">
-      <button mat-button [matMenuTriggerFor]="userMenu"
-              class="!w-full !justify-start !text-left !px-2 !py-2 hover:!bg-zinc-800">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-zinc-900 font-bold text-xs">
-            {{ initials }}
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm text-white truncate">{{ auth.user()?.fullName }}</div>
-            <div class="text-[11px] text-zinc-500 truncate">{{ auth.user()?.email }}</div>
-          </div>
+        <!-- Primary nav -->
+        <nav class="px-2 relative">
+          <div class="absolute left-2 right-2 rounded-md bg-forge-50 ring-1 ring-forge-100 transition-all duration-300 ease-out pointer-events-none"
+               [style.top.px]="primaryIndicator().top"
+               [style.height.px]="primaryIndicator().height"
+               [style.opacity]="primaryIndicator().visible ? 1 : 0"></div>
+          @for (item of primaryNav; track item.path; let i = $index) {
+            <a [routerLink]="item.path" routerLinkActive="!text-forge-700 !font-medium"
+               (isActiveChange)="onPrimaryActive($event, i)"
+               #primaryItem
+               class="relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-ink-muted hover:bg-sunken/70 hover:text-ink transition-colors">
+              <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
+              <span class="flex-1">{{ item.label }}</span>
+              @if (item.path === '/inbox' && notifications.unreadCount() > 0) {
+                <span class="text-[10px] bg-forge-600 text-white px-1.5 py-px rounded-full font-semibold"
+                      [class.animate-bounce]="badgeBump()">
+                  {{ notifications.unreadCount() }}
+                </span>
+              }
+            </a>
+          }
+        </nav>
+
+        <!-- Workspace section -->
+        <div class="mt-6 px-2">
+          <div class="px-3 mb-1 text-[10px] uppercase tracking-[0.12em] text-ink-faint font-semibold">Workspace</div>
+          <nav class="relative">
+            <div class="absolute left-0 right-0 rounded-md bg-forge-50 ring-1 ring-forge-100 transition-all duration-300 ease-out pointer-events-none"
+                 [style.top.px]="workspaceIndicator().top"
+                 [style.height.px]="workspaceIndicator().height"
+                 [style.opacity]="workspaceIndicator().visible ? 1 : 0"></div>
+            @for (item of workspaceNav; track item.path; let i = $index) {
+              <a [routerLink]="item.path" routerLinkActive="!text-forge-700 !font-medium"
+                 (isActiveChange)="onWorkspaceActive($event, i)"
+                 #workspaceItem
+                 class="relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-ink-muted hover:bg-sunken/70 hover:text-ink transition-colors">
+                <mat-icon class="!text-lg !w-5 !h-5">{{ item.icon }}</mat-icon>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </nav>
         </div>
-      </button>
-      <mat-menu #userMenu="matMenu">
-        <button mat-menu-item routerLink="/settings">
-          <mat-icon>settings</mat-icon>
-          <span>Settings</span>
-        </button>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Sign out</span>
-        </button>
-      </mat-menu>
-    </div>
-  </aside>
 
-  <!-- Main content -->
-  <main class="flex-1 overflow-auto" #routeContainer>
-    <router-outlet></router-outlet>
-  </main>
+        <!-- Recent projects -->
+        @if (recentProjects().length > 0) {
+          <div class="mt-6 px-2">
+            <div class="px-3 mb-1 text-[10px] uppercase tracking-[0.12em] text-ink-faint font-semibold">Projects</div>
+            @for (p of recentProjects(); track p.id) {
+              <a [routerLink]="['/projects', p.id]"
+                 class="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] text-ink-muted hover:bg-sunken/70 hover:text-ink transition-colors">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="p.color"></span>
+                <span class="truncate flex-1">{{ p.name }}</span>
+                <span class="font-mono text-[10px] text-ink-faint">{{ p.key }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- User menu at bottom -->
+      <div class="p-2 border-t border-line">
+        <button mat-button [matMenuTriggerFor]="userMenu"
+                class="!w-full !justify-start !text-left !px-2 !py-2 hover:!bg-sunken">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-white font-bold text-xs">
+              {{ initials }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm text-ink truncate">{{ auth.user()?.fullName }}</div>
+              <div class="text-[11px] text-ink-muted truncate">{{ auth.user()?.email }}</div>
+            </div>
+          </div>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item routerLink="/settings">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Sign out</span>
+          </button>
+        </mat-menu>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 overflow-auto" #routeContainer>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Status bar -->
+  <footer class="h-7 flex-shrink-0 bg-panel border-t border-line px-4 flex items-center gap-4 text-[11px] font-mono text-ink-muted">
+    <span class="flex items-center gap-1.5" [attr.aria-live]="'polite'">
+      <span class="w-1.5 h-1.5 rounded-full" [class]="connected() ? 'bg-tone-ok-fg' : 'bg-tone-med-fg animate-pulse'"></span>
+      {{ connected() ? 'Realtime connected' : 'Realtime reconnecting' }}
+    </span>
+    <span class="hidden sm:inline text-ink-faint">|</span>
+    <span class="hidden sm:inline truncate">{{ auth.tenant()?.name }}</span>
+    <span class="flex-1"></span>
+    <span class="hidden md:inline">{{ auth.user()?.email }}</span>
+  </footer>
 </div>

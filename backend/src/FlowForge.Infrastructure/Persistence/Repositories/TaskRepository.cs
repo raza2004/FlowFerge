@@ -37,6 +37,24 @@ public class TaskRepository : ITaskRepository
     public async Task<IEnumerable<ProjectTask>> GetBySprintAsync(Guid sprintId, CancellationToken ct = default) =>
         await _ctx.Tasks.Where(t => t.SprintId == sprintId).ToListAsync(ct);
 
+    public async Task<IEnumerable<ProjectTask>> GetOpenAssignedDueBetweenAsync(DateTime fromInclusive, DateTime toExclusive, CancellationToken ct = default) =>
+        await _ctx.Tasks
+            .Where(t => t.AssigneeId != null && t.CompletedAt == null && t.DueDate != null && t.DueDate >= fromInclusive && t.DueDate < toExclusive)
+            .ToListAsync(ct);
+
+    public async Task<IEnumerable<ProjectTask>> GetBacklogAsync(Guid projectId, CancellationToken ct = default) =>
+        await _ctx.Tasks
+            .Where(t => t.ProjectId == projectId && t.SprintId == null && t.ParentTaskId == null && t.CompletedAt == null)
+            .OrderBy(t => t.CreatedAt)
+            .ToListAsync(ct);
+
+    public async Task<IEnumerable<ProjectTask>> GetBySprintsAsync(IEnumerable<Guid> sprintIds, CancellationToken ct = default)
+    {
+        var ids = sprintIds.Distinct().ToList();
+        if (ids.Count == 0) return Array.Empty<ProjectTask>();
+        return await _ctx.Tasks.Where(t => t.SprintId != null && ids.Contains(t.SprintId.Value)).ToListAsync(ct);
+    }
+
     public async Task<IEnumerable<ProjectTask>> GetOverdueTasksAsync(Guid tenantId, CancellationToken ct = default) =>
         await _ctx.Tasks
             .Where(t => t.TenantId == tenantId && t.DueDate != null && t.DueDate < DateTime.UtcNow && t.CompletedAt == null)

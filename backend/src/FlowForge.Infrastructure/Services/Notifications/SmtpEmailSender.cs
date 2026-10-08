@@ -36,6 +36,12 @@ public class SmtpEmailSender : IEmailSender
         try
         {
             using var client = new SmtpClient(host, port);
+
+            // Real providers (Gmail, Brevo, Resend...) need login + TLS; MailHog needs neither.
+            var username = _config["Email:Username"];
+            if (!string.IsNullOrWhiteSpace(username))
+                client.Credentials = new System.Net.NetworkCredential(username, _config["Email:Password"]);
+            client.EnableSsl = bool.TryParse(_config["Email:EnableSsl"], out var ssl) && ssl;
             using var message = new MailMessage
             {
                 From = new MailAddress(fromAddress, fromName),

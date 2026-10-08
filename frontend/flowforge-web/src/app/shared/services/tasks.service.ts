@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   TaskCardDto, CreateTaskRequest, TaskDetailDto, UpdateTaskRequest,
-  TaskCommentDto, SubtaskDto, LabelDto, TimeEntryDto
+  TaskCommentDto, SubtaskDto, LabelDto, TimeEntryDto, AttachmentDto
 } from '../models/project.models';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +62,23 @@ export class TasksService {
   setWatching(taskId: string, watch: boolean): Observable<void> {
     const url = `${this.base}/${taskId}/watch`;
     return watch ? this.http.put<void>(url, null) : this.http.delete<void>(url);
+  }
+
+  uploadAttachment(taskId: string, file: File, boardId: string): Observable<AttachmentDto> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<AttachmentDto>(`${environment.apiUrl}/tasks/${taskId}/attachments`, form, { params: { boardId } });
+  }
+
+  /** Fetched through HttpClient (not a plain link) so the auth header travels with the request. */
+  downloadAttachment(attachmentId: string, inline: boolean): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/attachments/${attachmentId}/content`, {
+      params: { inline }, responseType: 'blob'
+    });
+  }
+
+  deleteAttachment(attachmentId: string, taskId: string, boardId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/attachments/${attachmentId}`, { params: { taskId, boardId } });
   }
 
   logTime(taskId: string, hours: number, workDate: string | null, note: string | null): Observable<TimeEntryDto> {

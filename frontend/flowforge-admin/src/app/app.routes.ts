@@ -14,6 +14,7 @@ export const routes: Routes = [
       { path: 'dashboard',   loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'tenants',     loadComponent: () => import('./features/tenants/tenants.component').then(m => m.TenantsComponent) },
       { path: 'users',       loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent) },
+      { path: 'features',    loadComponent: () => import('./features/features/features.component').then(m => m.FeaturesComponent) },
       { path: 'audit-logs',  loadComponent: () => import('./features/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent) }
     ]
   },

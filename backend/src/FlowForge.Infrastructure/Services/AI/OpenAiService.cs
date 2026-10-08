@@ -31,8 +31,8 @@ public class OpenAiService : IAiService
 
     public async Task<Result<SubtaskSuggestion>> SuggestSubtasksAsync(string taskTitle, string? taskDescription, CancellationToken ct = default)
     {
-        var clientResult = TryCreateClient();
-        if (clientResult.IsFailure) return Result.Failure<SubtaskSuggestion>(clientResult.Error);
+        var configured = EnsureConfigured();
+        if (configured.IsFailure) return Result.Failure<SubtaskSuggestion>(configured.Error);
 
         var userPrompt =
             $"Task: {taskTitle}\n" +
@@ -41,7 +41,7 @@ public class OpenAiService : IAiService
             "individually. Respond with JSON only, in exactly this shape: " +
             "{\"subtasks\": [\"...\", \"...\"]}";
 
-        var jsonResult = await CompleteJsonAsync(clientResult.Value,
+        var jsonResult = await CompleteJsonAsync(
             "You are a precise software project planning assistant. Always respond with valid JSON only, no markdown, no commentary.",
             userPrompt, ct);
         if (jsonResult.IsFailure) return Result.Failure<SubtaskSuggestion>(jsonResult.Error);
@@ -70,8 +70,8 @@ public class OpenAiService : IAiService
     public async Task<Result<AssigneeSuggestion>> SuggestAssigneeAsync(
         string taskTitle, string? taskDescription, List<AssigneeCandidate> candidates, CancellationToken ct = default)
     {
-        var clientResult = TryCreateClient();
-        if (clientResult.IsFailure) return Result.Failure<AssigneeSuggestion>(clientResult.Error);
+        var configured = EnsureConfigured();
+        if (configured.IsFailure) return Result.Failure<AssigneeSuggestion>(configured.Error);
 
         var candidateLines = string.Join("\n",
             candidates.Select(c => $"- id: {c.UserId}, name: {c.FullName}, currently has {c.OpenTaskCount} open task(s)"));
@@ -85,7 +85,7 @@ public class OpenAiService : IAiService
             "Respond with JSON only, in exactly this shape: " +
             "{\"suggestedUserId\": \"<one of the candidate ids above, verbatim>\", \"reasoning\": \"<one sentence>\"}";
 
-        var jsonResult = await CompleteJsonAsync(clientResult.Value,
+        var jsonResult = await CompleteJsonAsync(
             "You are a precise engineering team lead assistant. Always respond with valid JSON only, no markdown, no commentary.",
             userPrompt, ct);
         if (jsonResult.IsFailure) return Result.Failure<AssigneeSuggestion>(jsonResult.Error);
@@ -110,8 +110,8 @@ public class OpenAiService : IAiService
 
     public async Task<Result<string>> SummarizeProjectAsync(ProjectSummaryInput input, CancellationToken ct = default)
     {
-        var clientResult = TryCreateClient();
-        if (clientResult.IsFailure) return Result.Failure<string>(clientResult.Error);
+        var configured = EnsureConfigured();
+        if (configured.IsFailure) return Result.Failure<string>(configured.Error);
 
         var userPrompt =
             $"Project: {input.ProjectName}\n" +
@@ -124,78 +124,138 @@ public class OpenAiService : IAiService
             "markdown or bullet points. Mention overall progress, call out anything overdue or at risk " +
             "by name, and end with one concrete recommendation.";
 
-        try
-        {
-            var options = new ChatCompletionOptions();
-            var messages = new List<ChatMessage>
+        var chat = await ChatAsync(
+            new List<ChatMessage>
             {
                 new SystemChatMessage("You are a concise, direct engineering manager writing a project status update."),
                 new UserChatMessage(userPrompt)
-            };
+            },
+            new ChatCompletionOptions(), ct);
 
-            var completion = await clientResult.Value.CompleteChatAsync(messages, options, ct);
-            var text = completion.Value.Content.Count > 0 ? completion.Value.Content[0].Text : null;
+        return chat.IsFailure ? chat : Result.Success(chat.Value.Trim());
+    }
 
-            if (string.IsNullOrWhiteSpace(text))
-                return Result.Failure<string>(Error.Failure("AI.EmptyResponse", "The AI did not return a summary"));
+    public async Task<Result<BlockerAnalysis>> AnalyzeBlockersAsync(BlockerAnalysisInput input, CancellationToken ct = default)
+    {
+        var configured = EnsureConfigured();
+        if (configured.IsFailure) return Result.Failure<BlockerAnalysis>(configured.Error);
 
-            return Result.Success(text.Trim());
+        var userPrompt =
+            $"Project: {input.ProjectName}\n" +
+            $"Open tasks: {input.OpenTasks}\n\n" +
+            "Risks already detected by automated rules:\n" +
+            string.Join("\n", input.SignalLines.Select(l => $"- {l}")) + "\n\n" +
+            "Do not invent risks beyond this list. Write a 2-3 sentence summary of how serious the situation is " +
+            "and which items matter most, then give 2 to 4 specific, actionable recommendations that reference " +
+            "tasks or people from the list. Respond with JSON only, in exactly this shape: " +
+            "{\"summary\": \"...\", \"recommendations\": [\"...\", \"...\"]}";
+
+        var jsonResult = await CompleteJsonAsync(
+            "You are an experienced delivery manager reviewing project risks. Always respond with valid JSON only, no markdown, no commentary.",
+            userPrompt, ct);
+        if (jsonResult.IsFailure) return Result.Failure<BlockerAnalysis>(jsonResult.Error);
+
+        try
+        {
+            using var doc = JsonDocument.Parse(jsonResult.Value);
+            var summary = doc.RootElement.GetProperty("summary").GetString();
+            var recommendations = doc.RootElement.TryGetProperty("recommendations", out var recs)
+                ? recs.EnumerateArray().Select(e => e.GetString() ?? string.Empty).Where(s => !string.IsNullOrWhiteSpace(s)).ToList()
+                : new List<string>();
+
+            if (string.IsNullOrWhiteSpace(summary))
+                return Result.Failure<BlockerAnalysis>(Error.Failure("AI.EmptyResponse", "The AI did not return an analysis"));
+
+            return Result.Success(new BlockerAnalysis(summary.Trim(), recommendations));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "OpenAI request failed while summarizing project {ProjectName}", input.ProjectName);
-            return Result.Failure<string>(Error.Failure("AI.RequestFailed", "The AI request failed"));
+            _logger.LogWarning(ex, "Failed to parse AI blocker analysis response: {Json}", jsonResult.Value);
+            return Result.Failure<BlockerAnalysis>(Error.Failure("AI.ParseError", "Could not parse the AI's response"));
         }
     }
 
-    private Result<ChatClient> TryCreateClient()
+    private Result EnsureConfigured()
     {
-        var apiKey = _config["OpenAI:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
+        if (string.IsNullOrWhiteSpace(_config["OpenAI:ApiKey"]))
         {
-            return Result.Failure<ChatClient>(Error.Failure("AI.NotConfigured",
+            return Result.Failure(Error.Failure("AI.NotConfigured",
                 "AI API key is not configured. Set OpenAI:ApiKey (and, for a non-OpenAI provider, OpenAI:BaseUrl) in appsettings or user-secrets to enable AI features."));
         }
 
-        var model = _config["OpenAI:Model"];
-        model = string.IsNullOrWhiteSpace(model) ? "gpt-4o-mini" : model;
-
-        var baseUrl = _config["OpenAI:BaseUrl"];
-        if (string.IsNullOrWhiteSpace(baseUrl))
-        {
-            return Result.Success(new ChatClient(model, apiKey));
-        }
-
-        var options = new OpenAIClientOptions { Endpoint = new Uri(baseUrl) };
-        return Result.Success(new ChatClient(model, new ApiKeyCredential(apiKey), options));
+        return Result.Success();
     }
 
-    private async Task<Result<string>> CompleteJsonAsync(ChatClient client, string systemPrompt, string userPrompt, CancellationToken ct)
+    /// <summary>
+    /// The primary model first, then each model in OpenAI:FallbackModels (comma separated). Free
+    /// models on a shared provider hit their quotas often, so a busy model quietly hands over to the next.
+    /// </summary>
+    private List<string> ModelChain()
     {
-        try
-        {
-            var options = new ChatCompletionOptions
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat()
-            };
-            var messages = new List<ChatMessage>
-            {
-                new SystemChatMessage(systemPrompt),
-                new UserChatMessage(userPrompt)
-            };
+        var primary = _config["OpenAI:Model"];
+        var chain = new List<string> { string.IsNullOrWhiteSpace(primary) ? "gpt-4o-mini" : primary.Trim() };
 
-            var completion = await client.CompleteChatAsync(messages, options, ct);
-            var text = completion.Value.Content.Count > 0 ? completion.Value.Content[0].Text : null;
+        var fallbacks = _config["OpenAI:FallbackModels"];
+        if (!string.IsNullOrWhiteSpace(fallbacks))
+            chain.AddRange(fallbacks.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
-            if (string.IsNullOrWhiteSpace(text))
-                return Result.Failure<string>(Error.Failure("AI.EmptyResponse", "The AI returned an empty response"));
-
-            return Result.Success(text);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "OpenAI request failed");
-            return Result.Failure<string>(Error.Failure("AI.RequestFailed", "The AI request failed"));
-        }
+        return chain.Distinct().ToList();
     }
+
+    private ChatClient CreateClient(string model)
+    {
+        var apiKey = _config["OpenAI:ApiKey"]!;
+        var baseUrl = _config["OpenAI:BaseUrl"];
+
+        return string.IsNullOrWhiteSpace(baseUrl)
+            ? new ChatClient(model, apiKey)
+            : new ChatClient(model, new ApiKeyCredential(apiKey), new OpenAIClientOptions { Endpoint = new Uri(baseUrl) });
+    }
+
+    // Statuses where trying a different model can help: rate limited, model gone or not free,
+    // provider hiccup, or the model rejecting a request option (e.g. JSON mode) another one accepts.
+    private static readonly HashSet<int> TryNextModelStatuses = new() { 400, 402, 404, 408, 429, 500, 502, 503, 504 };
+
+    private async Task<Result<string>> ChatAsync(List<ChatMessage> messages, ChatCompletionOptions options, CancellationToken ct)
+    {
+        var sawRateLimit = false;
+
+        foreach (var model in ModelChain())
+        {
+            try
+            {
+                var completion = await CreateClient(model).CompleteChatAsync(messages, options, ct);
+                var text = completion.Value.Content.Count > 0 ? completion.Value.Content[0].Text : null;
+
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    _logger.LogWarning("AI model {Model} returned an empty response, trying the next one", model);
+                    continue;
+                }
+
+                return Result.Success(text);
+            }
+            catch (ClientResultException ex) when (TryNextModelStatuses.Contains(ex.Status))
+            {
+                sawRateLimit |= ex.Status == 429;
+                _logger.LogWarning("AI model {Model} unavailable (HTTP {Status}), trying the next one", model, ex.Status);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "AI request to model {Model} failed", model);
+                return Result.Failure<string>(Error.Failure("AI.RequestFailed", "The AI request failed"));
+            }
+        }
+
+        return sawRateLimit
+            ? Result.Failure<string>(Error.TooManyRequests("AI.RateLimited",
+                "The AI provider is busy (its free usage limit was reached). Wait a minute and try again, or add more fallback models."))
+            : Result.Failure<string>(Error.Failure("AI.RequestFailed", "No AI model could answer right now."));
+    }
+
+    private Task<Result<string>> CompleteJsonAsync(string systemPrompt, string userPrompt, CancellationToken ct) =>
+        ChatAsync(
+            new List<ChatMessage> { new SystemChatMessage(systemPrompt), new UserChatMessage(userPrompt) },
+            new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() },
+            ct);
 }

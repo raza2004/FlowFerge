@@ -9,6 +9,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationsRealtimeService } from '../../core/services/notifications-realtime.service';
 import { NotificationsService } from '../../shared/services/notifications.service';
 import { WorkspaceDto } from '../../shared/models/auth.models';
+import { FeaturesService } from '../../shared/services/features.service';
+import { ProjectsService } from '../../shared/services/projects.service';
+import { ProjectSummaryDto } from '../../shared/models/project.models';
 
 interface NavIndicator {
   top: number;
@@ -28,7 +31,11 @@ interface NavIndicator {
 export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   auth = inject(AuthService);
   private notificationsRealtime = inject(NotificationsRealtimeService);
+  private projectsService = inject(ProjectsService);
+  connected = this.notificationsRealtime.connected;
+  recentProjects = signal<ProjectSummaryDto[]>([]);
   private router = inject(Router);
+  private features = inject(FeaturesService);
   notifications = inject(NotificationsService);
 
   @ViewChildren('primaryItem') private primaryItems!: QueryList<ElementRef<HTMLElement>>;
@@ -40,6 +47,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   badgeBump = signal(false);
   workspaces = signal<WorkspaceDto[]>([]);
   switching = signal(false);
+  /** Mobile only: the sidebar becomes a slide-over drawer below the md breakpoint. */
+  menuOpen = signal(false);
 
   primaryNav = [
     { path: '/inbox',     label: 'Inbox',     icon: 'inbox' },
@@ -64,6 +73,11 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async ngOnInit() {
     this.notifications.refreshUnreadCount();
+    this.features.load();
+    this.projectsService.getAll().subscribe({
+      next: projects => this.recentProjects.set(projects.slice(0, 6)),
+      error: () => this.recentProjects.set([])
+    });
 
     await this.notificationsRealtime.startConnection();
     this.notificationsRealtime.notificationReceived$.subscribe(() => {
@@ -76,6 +90,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     queueMicrotask(() => this.syncIndicators());
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.menuOpen.set(false);
       setTimeout(() => this.syncIndicators());
       this.replayRouteFade();
     });
