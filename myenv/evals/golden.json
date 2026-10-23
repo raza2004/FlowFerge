@@ -1,0 +1,96 @@
+{
+  "description": "Golden questions about FlowForge data. A response passes when its answer contains every string in must_contain (case insensitive). Every expected answer comes from the FlowForge domain model or backend config, not from guesswork.",
+  "version": 1,
+  "questions": [
+    {
+      "id": "q01",
+      "question": "What membership roles exist in a FlowForge workspace?",
+      "must_contain": ["Owner", "Admin", "Manager", "Member", "Guest"]
+    },
+    {
+      "id": "q02",
+      "question": "What are the task priority levels from lowest to highest?",
+      "must_contain": ["Lowest", "Low", "Medium", "High", "Highest", "Critical"]
+    },
+    {
+      "id": "q03",
+      "question": "Which task types can I create?",
+      "must_contain": ["Task", "Bug", "Feature", "Story", "Epic", "Improvement"]
+    },
+    {
+      "id": "q04",
+      "question": "What statuses can a sprint have?",
+      "must_contain": ["Planning", "Active", "Completed", "Cancelled"]
+    },
+    {
+      "id": "q05",
+      "question": "What statuses can a project have?",
+      "must_contain": ["Active", "OnHold", "Completed", "Archived"]
+    },
+    {
+      "id": "q06",
+      "question": "Which priority is the most urgent for a task?",
+      "must_contain": ["Critical"]
+    },
+    {
+      "id": "q07",
+      "question": "Who is allowed to invite people into a workspace?",
+      "must_contain": ["Owner", "Admin"]
+    },
+    {
+      "id": "q08",
+      "question": "Can an Admin invite someone as an Owner?",
+      "must_contain": ["no", "higher role"]
+    },
+    {
+      "id": "q09",
+      "question": "What happens if I invite the same email address twice?",
+      "must_contain": ["replaces", "pending"]
+    },
+    {
+      "id": "q10",
+      "question": "What is the maximum size of a file attached to a task?",
+      "must_contain": ["25 MB"]
+    },
+    {
+      "id": "q11",
+      "question": "How many login attempts per minute does one IP address get?",
+      "must_contain": ["10"]
+    },
+    {
+      "id": "q12",
+      "question": "What kinds of blocker signals does the AI blocker detection report?",
+      "must_contain": ["Overdue", "DueSoonUnassigned", "Stale", "Overloaded"]
+    },
+    {
+      "id": "q13",
+      "question": "What types of notification can a user receive?",
+      "must_contain": ["TaskAssigned", "AutomationTriggered", "Mentioned", "CommentAdded", "DueSoon"]
+    },
+    {
+      "id": "q14",
+      "question": "Which technology pushes live board updates to the browser?",
+      "must_contain": ["SignalR"]
+    },
+    {
+      "id": "q15",
+      "question": "Which message broker does FlowForge use between the API and the workers?",
+      "must_contain": ["RabbitMQ"]
+    },
+    {
+      "id": "q16",
+      "question": "Where are task attachments stored?",
+      "must_contain": ["MinIO"]
+    },
+    {
+      "id": "q17",
+      "question": "What does a WIP limit on a board column do?",
+      "must_contain": ["work in progress", "limit"]
+    },
+    {
+      "id": "q18",
+      "question": "What units can a sprint burndown chart be measured in?",
+      "must_contain": ["points", "tasks"]
+    }
+  ]
+}

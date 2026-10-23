@@ -1,0 +1,9 @@
+# This folder is both the Python virtual environment and the AI service project.
+# Commit the project files, never the environment itself.
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+.env
+__pycache__/
+.pytest_cache/

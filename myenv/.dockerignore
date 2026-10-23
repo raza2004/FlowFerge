@@ -1,0 +1,10 @@
+Include
+Lib
+Scripts
+pyvenv.cfg
+.env
+tests
+evals
+docs
+__pycache__
+.pytest_cache
