@@ -41,7 +41,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
         <!-- Subtask breakdown -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-800">Suggested subtasks</h3>
+            <h3 class="text-sm font-semibold text-ink">Suggested subtasks</h3>
             <button mat-stroked-button (click)="loadBreakdown()" [disabled]="breakdownLoading()">
               @if (breakdownLoading()) { <mat-spinner diameter="16" class="!inline-block mr-1"></mat-spinner> }
               {{ subtasks().length ? 'Regenerate' : 'Suggest subtasks' }}
@@ -53,7 +53,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
           }
 
           @if (subtasks().length > 0) {
-            <div class="space-y-1 border border-gray-200 rounded-lg p-2">
+            <div class="space-y-1 border border-line rounded-lg p-2">
               @for (title of subtasks(); track title) {
                 <label class="flex items-center gap-2 text-sm py-0.5">
                   <mat-checkbox [checked]="selected().has(title)" (change)="toggleSelected(title)"></mat-checkbox>
@@ -75,7 +75,7 @@ function aiErrorMessage(err: HttpErrorResponse): string {
         <!-- Assignee suggestion -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-800">Suggested assignee</h3>
+            <h3 class="text-sm font-semibold text-ink">Suggested assignee</h3>
             <button mat-stroked-button (click)="loadAssignee()" [disabled]="assigneeLoading()">
               @if (assigneeLoading()) { <mat-spinner diameter="16" class="!inline-block mr-1"></mat-spinner> }
               {{ assignee() ? 'Suggest again' : 'Suggest assignee' }}
@@ -87,13 +87,13 @@ function aiErrorMessage(err: HttpErrorResponse): string {
           }
 
           @if (assignee(); as a) {
-            <div class="border border-gray-200 rounded-lg p-3 flex items-center gap-3">
+            <div class="border border-line rounded-lg p-3 flex items-center gap-3">
               <div class="w-8 h-8 rounded-full bg-gradient-to-br from-forge-400 to-forge-600 flex items-center justify-center text-ink font-bold text-xs">
                 {{ initials(a.fullName) }}
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-900">{{ a.fullName }}</div>
-                <div class="text-xs text-gray-500">{{ a.reasoning }}</div>
+                <div class="text-sm font-medium text-ink">{{ a.fullName }}</div>
+                <div class="text-xs text-ink-muted">{{ a.reasoning }}</div>
               </div>
               <button mat-stroked-button class="!text-xs" [disabled]="assigning()" (click)="applyAssignee()">
                 Assign

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, AfterViewInit, ViewChildren, ViewChild, QueryList, ElementRef, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, ViewChildren, ViewChild, QueryList, ElementRef, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -12,6 +12,7 @@ import { WorkspaceDto } from '../../shared/models/auth.models';
 import { FeaturesService } from '../../shared/services/features.service';
 import { ProjectsService } from '../../shared/services/projects.service';
 import { ProjectSummaryDto } from '../../shared/models/project.models';
+import { CommandPaletteComponent } from './command-palette.component';
 
 interface NavIndicator {
   top: number;
@@ -24,7 +25,7 @@ interface NavIndicator {
   standalone: true,
   imports: [
     CommonModule, RouterOutlet, RouterLink, RouterLinkActive,
-    MatIconModule, MatMenuModule, MatButtonModule
+    MatIconModule, MatMenuModule, MatButtonModule, CommandPaletteComponent
   ],
   templateUrl: './main-layout.component.html'
 })
@@ -49,11 +50,21 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
   switching = signal(false);
   /** Mobile only: the sidebar becomes a slide-over drawer below the md breakpoint. */
   menuOpen = signal(false);
+  paletteOpen = signal(false);
+
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKey(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      this.paletteOpen.update(open => !open);
+    }
+  }
 
   primaryNav = [
     { path: '/inbox',     label: 'Inbox',     icon: 'inbox' },
     { path: '/my-work',   label: 'My Work',   icon: 'check_circle' },
-    { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard' }
+    { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
+    { path: '/assistant', label: 'Assistant', icon: 'auto_awesome' }
   ];
 
   workspaceNav = [

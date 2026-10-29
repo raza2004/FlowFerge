@@ -11,12 +11,13 @@ import { NotificationDto, NotificationType } from '../../shared/models/notificat
   imports: [CommonModule, MatIconModule, DatePipe],
   template: `
     <div class="max-w-6xl mx-auto px-8 py-8">
-      <h1 class="text-3xl font-display font-semibold text-ink mb-2">Inbox</h1>
+      <div class="eyebrow mb-2">Notifications</div>
+      <h1 class="text-5xl font-display text-ink">Inbox</h1>
       <p class="text-ink-muted mb-8">Notifications and mentions across your workspace</p>
 
       @if (notifications().length === 0) {
-        <div class="max-w-4xl bg-white rounded-xl border border-line p-16 text-center">
-          <mat-icon class="!text-6xl !w-16 !h-16 text-zinc-300">inbox</mat-icon>
+        <div class="max-w-4xl bg-panel rounded-xl border border-line p-16 text-center">
+          <mat-icon class="!text-6xl !w-16 !h-16 text-ink-faint">inbox</mat-icon>
           <h3 class="font-display text-lg mt-4 text-ink">Your inbox is empty</h3>
           <p class="text-ink-muted mt-1 text-sm max-w-md mx-auto">
             When teammates @mention you, assign you work, or an automation fires,
@@ -24,14 +25,14 @@ import { NotificationDto, NotificationType } from '../../shared/models/notificat
           </p>
         </div>
       } @else {
-        <div class="max-w-4xl bg-white rounded-xl border border-line overflow-hidden">
+        <div class="max-w-4xl bg-panel rounded-xl border border-line overflow-hidden">
           <div class="divide-y divide-line/60">
             @for (n of notifications(); track n.id) {
               <button (click)="markRead(n)"
                       class="w-full flex items-start gap-3 px-6 py-4 text-left hover:bg-canvas transition-colors"
                       [class.bg-forge-50]="!n.isRead">
                 <mat-icon class="!text-lg !w-5 !h-5 mt-0.5 flex-shrink-0"
-                          [class.text-forge-600]="!n.isRead" [class.text-zinc-300]="n.isRead">
+                          [class.text-forge-600]="!n.isRead" [class.text-ink-faint]="n.isRead">
                   {{ icon(n.type) }}
                 </mat-icon>
                 <div class="flex-1 min-w-0">

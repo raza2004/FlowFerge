@@ -294,11 +294,13 @@ When everything is running locally, these endpoints are available.
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Frontend (main app) | http://localhost:4200 | Register your own |
-| Admin Panel | http://localhost:4201 | Register your own (system admin) |
+| Admin Panel | http://localhost:4201 | A system admin account (see [Getting admin access](#getting-admin-access)) |
 | Backend API | http://localhost:5076 | JWT required |
 | Swagger UI | http://localhost:5076/swagger | None |
 | Health Check | http://localhost:5076/health | None |
-| PostgreSQL | localhost:5432 | postgres / FlowForge@123 |
+| AI service (Python) | http://127.0.0.1:8001 | Internal key, called by the API only |
+| AI service API docs | http://127.0.0.1:8001/docs | None |
+| PostgreSQL | localhost:5432 | POSTGRES_USER / POSTGRES_PASSWORD from your `.env` |
 | Redis | localhost:6379 | None |
 | RabbitMQ Dashboard | http://localhost:15672 | guest / guest |
 | MinIO Console | http://localhost:9001 | minioadmin / minioadmin |
@@ -490,25 +492,79 @@ ng serve                 # http://localhost:4201 (port is set in angular.json)
 ng build --configuration production
 ```
 
-### Fastest daily workflow
+### AI service (Python, FastAPI + RAG)
 
-Four terminals, in order:
+The document assistant needs three things running: a pgvector Postgres, the Python service, and the API pointed at the Python service with the **same internal key**.
 
 ```bash
-# 1) infra
-docker compose up -d postgres redis rabbitmq minio mailhog seq
+# 1) the AI service's own database (pgvector image, separate from the app database)
+docker run -d --name ff-pgvector -e POSTGRES_PASSWORD=test -p 5433:5432 pgvector/pgvector:pg16
+#    every later time:  docker start ff-pgvector
 
-# 2) backend API
-cd backend && dotnet run --project src/FlowForge.API/FlowForge.API.csproj
+# 2) the Python service. The virtual environment is the myenv folder itself.
+cd myenv
+pip install -r requirements.txt      # first time only (use myenv/Scripts/python.exe -m pip on Windows if pip is not on PATH)
 
-# 3) main app
-cd frontend/flowforge-web && ng serve
+# set these in the same terminal (values come from your .env):
+export OPENAI_API_KEY=...            # your OpenRouter key
+export OPENAI_BASE_URL=https://openrouter.ai/api/v1
+export EMBEDDING_MODEL=openai/text-embedding-3-small
+export CHAT_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free    # free models rotate: check openrouter.ai/models?max_price=0
+export CHAT_FALLBACK_MODELS=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+export DATABASE_URL=postgresql://postgres:test@localhost:5433/postgres
+export INTERNAL_API_KEY=dev-internal-key
+./Scripts/python.exe -m uvicorn app.main:app --port 8001     # docs at http://127.0.0.1:8001/docs
 
-# 4) admin panel (only when you need it)
-cd frontend/flowforge-admin && ng serve
+# 3) in the terminal where you start the API, export the matching settings first
+export AiService__BaseUrl=http://127.0.0.1:8001
+export AiService__InternalKey=dev-internal-key
+
+# Python tests
+cd myenv && ./Scripts/python.exe -m pytest                       # 31 tests, no database needed
+TEST_DATABASE_URL=postgresql://postgres:test@localhost:5433/postgres ./Scripts/python.exe -m pytest   # 38, including pgvector
 ```
 
-Then open http://localhost:4200 (main app) and http://localhost:4201 (admin panel — first registered account becomes system admin automatically).
+Notes:
+- Use `127.0.0.1`, not `localhost`. On Windows `localhost` tries IPv6 first, and the Python server listens on IPv4 only.
+- The assistant page is http://localhost:4200/assistant. Owners and admins upload a PDF, TXT or Markdown file; anyone in the workspace can then ask questions about it.
+- If the Python service is not running, the app still works; the assistant shows "temporarily unavailable".
+
+### Getting admin access
+
+The admin panel (http://localhost:4201) is a **separate app** with its own login, and it only accepts accounts flagged as system admin. The "first account becomes admin" rule only applies to a brand new, empty database. On an existing database, promote your account once (replace the email):
+
+```bash
+docker exec flowforge-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "UPDATE users SET \"IsSystemAdmin\" = true WHERE \"Email\" = '"'"'you@example.com'"'"'"'
+```
+
+Then sign in at http://localhost:4201. Admin status is stored in the login token, so sign in again if you were already logged in.
+
+### Fastest daily workflow
+
+Six terminals, in order:
+
+```bash
+# 1) infra and the AI database
+docker compose up -d postgres redis rabbitmq minio mailhog
+docker start ff-pgvector
+
+# 2) Python AI service (env vars from the AI service section above)
+cd myenv && ./Scripts/python.exe -m uvicorn app.main:app --port 8001
+
+# 3) backend API (with AiService__BaseUrl and AiService__InternalKey exported)
+cd backend && dotnet run --project src/FlowForge.API/FlowForge.API.csproj
+
+# 4) main app
+cd frontend/flowforge-web && npx ng serve --port 4200
+
+# 5) admin panel (only when you need it)
+cd frontend/flowforge-admin && npx ng serve --port 4201
+
+# 6) background workers (only needed for queued email and Slack delivery)
+cd backend && dotnet run --project src/FlowForge.Workers/FlowForge.Workers.csproj
+```
+
+Then open http://localhost:4200 (main app) and http://localhost:4201 (admin panel, needs a system admin account).
 
 ## License
 

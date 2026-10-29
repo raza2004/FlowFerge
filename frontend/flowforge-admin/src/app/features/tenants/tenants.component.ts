@@ -14,12 +14,13 @@ import { SuspendTenantDialogComponent } from './suspend-tenant-dialog.component'
   imports: [CommonModule, DatePipe, MatIconModule, MatButtonModule, MatDialogModule, MatTooltipModule],
   template: `
     <div class="max-w-6xl mx-auto px-8 py-10">
-      <h1 class="text-3xl font-display font-semibold text-zinc-900 mb-2">Tenants</h1>
-      <p class="text-zinc-500 mb-8">{{ tenants().length }} workspaces across the system</p>
+      <div class="eyebrow mb-2">Customers</div>
+      <h1 class="text-5xl font-display text-ink mb-3">Tenants</h1>
+      <p class="text-ink-muted mb-8">{{ tenants().length }} workspaces across the system</p>
 
-      <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+      <div class="bg-panel rounded-xl border border-line overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase tracking-wide">
+          <thead class="bg-sunken text-ink-muted text-xs uppercase tracking-wide">
             <tr>
               <th class="text-left px-4 py-2.5 font-medium">Workspace</th>
               <th class="text-left px-4 py-2.5 font-medium">Plan</th>
@@ -30,17 +31,17 @@ import { SuspendTenantDialogComponent } from './suspend-tenant-dialog.component'
               <th class="px-4 py-2.5"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-zinc-100">
+          <tbody class="divide-y divide-line">
             @for (t of tenants(); track t.id) {
-              <tr class="hover:bg-zinc-50">
+              <tr class="hover:bg-sunken">
                 <td class="px-4 py-3">
-                  <div class="font-medium text-zinc-900">{{ t.name }}</div>
-                  <div class="text-xs text-zinc-400 font-mono">{{ t.slug }}</div>
+                  <div class="font-medium text-ink">{{ t.name }}</div>
+                  <div class="text-xs text-ink-faint font-mono">{{ t.slug }}</div>
                 </td>
-                <td class="px-4 py-3 text-zinc-600">{{ t.planTier }}</td>
-                <td class="px-4 py-3 text-zinc-600">{{ t.memberCount }}</td>
-                <td class="px-4 py-3 text-zinc-600">{{ t.projectCount }}</td>
-                <td class="px-4 py-3 text-zinc-600">{{ t.createdAt | date:'MMM d, y' }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ t.planTier }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ t.memberCount }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ t.projectCount }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ t.createdAt | date:'MMM d, y' }}</td>
                 <td class="px-4 py-3">
                   @if (t.isActive) {
                     <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Active</span>

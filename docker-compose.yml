@@ -80,6 +80,51 @@ services:
     networks:
       - flowforge-network
 
+  # The AI service keeps its own vector database, separate from the app database: no shared tables, so
+  # neither service can break the other's schema, and the pgvector image is only needed here.
+  ai-db:
+    image: pgvector/pgvector:pg16
+    container_name: flowforge-ai-db
+    environment:
+      POSTGRES_DB: aiservice
+      POSTGRES_USER: ai
+      POSTGRES_PASSWORD: ${AI_DB_PASSWORD:?Set AI_DB_PASSWORD in .env - copy .env.example to get started}
+    volumes:
+      - flowforge-ai-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - flowforge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai -d aiservice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python AI service. Reachable only from the API over the internal network: no published port.
+  ai-service:
+    build:
+      context: ./myenv
+    container_name: flowforge-ai-service
+    environment:
+      DATABASE_URL: "postgresql://ai:${AI_DB_PASSWORD}@ai-db:5432/aiservice"
+      INTERNAL_API_KEY: ${AI_INTERNAL_KEY:?Set AI_INTERNAL_KEY in .env - the API and the AI service share it}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      CHAT_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      CHAT_FALLBACK_MODELS: ${OPENAI_FALLBACK_MODELS:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+    depends_on:
+      ai-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - flowforge-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -109,6 +154,8 @@ services:
       OpenAI__Model: ${OPENAI_MODEL:-google/gemma-4-31b-it:free}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
       OpenAI__FallbackModels: ${OPENAI_FALLBACK_MODELS:-}
+      AiService__BaseUrl: "http://ai-service:8000"
+      AiService__InternalKey: ${AI_INTERNAL_KEY:?Set AI_INTERNAL_KEY in .env}
     ports:
       - "5076:8080"
     depends_on:
@@ -122,6 +169,8 @@ services:
         condition: service_started
       mailhog:
         condition: service_started
+      ai-service:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - flowforge-network
@@ -151,6 +200,7 @@ volumes:
   flowforge-postgres-data:
   flowforge-minio-data:
   flowforge-seq-data:
+  flowforge-ai-db-data:
 
 networks:
   flowforge-network:

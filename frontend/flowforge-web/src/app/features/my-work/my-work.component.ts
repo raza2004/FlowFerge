@@ -11,14 +11,15 @@ import { MyTaskDto } from '../../shared/models/project.models';
   template: `
     <div class="max-w-6xl mx-auto px-8 py-8">
       <div class="mb-8">
-        <h1 class="text-3xl font-display font-semibold text-ink">My work</h1>
+        <div class="eyebrow mb-2">Assigned to you</div>
+        <h1 class="text-5xl font-display text-ink">My work</h1>
         <p class="text-ink-muted mt-1">All tasks assigned to you across projects</p>
       </div>
 
-      <div class="bg-white rounded-xl border border-line overflow-hidden">
+      <div class="bg-panel rounded-xl border border-line overflow-hidden">
         @if (tasks().length === 0) {
           <div class="p-16 text-center">
-            <mat-icon class="!text-6xl !w-16 !h-16 text-zinc-300">task_alt</mat-icon>
+            <mat-icon class="!text-6xl !w-16 !h-16 text-ink-faint">task_alt</mat-icon>
             <h3 class="font-display text-lg mt-4 text-ink">All clear</h3>
             <p class="text-ink-muted mt-1 text-sm">No tasks assigned to you yet</p>
           </div>

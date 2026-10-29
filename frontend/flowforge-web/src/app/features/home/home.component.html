@@ -1,233 +1,291 @@
-<div class="bg-white text-zinc-900">
+<div class="home bg-canvas text-ink overflow-x-clip">
+
+  <!-- Custom cursor (desktop, motion allowed) -->
+  <div class="cursor-dot hidden md:block" #cursor aria-hidden="true"></div>
 
   <!-- Nav -->
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-100">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-forge-600 flex items-center justify-center">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-            <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-            <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-          </svg>
-        </div>
-        <span class="font-display font-semibold text-lg tracking-tight">FlowForge</span>
-      </div>
+  <header class="nav fixed top-0 inset-x-0 z-50 transition-all duration-500" [class.nav-solid]="scrolled()">
+    <div class="max-w-[88rem] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
+      <a href="#top" (click)="goTo($event, '#top')" class="flex items-baseline gap-1" aria-label="FlowForge home">
+        <span class="font-display text-[28px] leading-none tracking-tight">FlowForge</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-ember-500"></span>
+      </a>
 
-      <nav class="hidden md:flex items-center gap-8 text-sm text-zinc-600">
-        <a href="#features" class="nav-link hover:text-zinc-900 transition-colors">Features</a>
-        <a href="#ai" class="nav-link hover:text-zinc-900 transition-colors">AI</a>
-        <a href="#faq" class="nav-link hover:text-zinc-900 transition-colors">FAQ</a>
+      <nav class="hidden md:flex items-center gap-9 text-sm text-ink-soft">
+        <a href="#how" (click)="goTo($event, '#how')" class="link-u">How it works</a>
+        <a href="#inside" (click)="goTo($event, '#inside')" class="link-u">What is inside</a>
+        <a href="#assistant" (click)="goTo($event, '#assistant')" class="link-u">Assistant</a>
+        <a href="#faq" (click)="goTo($event, '#faq')" class="link-u">Questions</a>
       </nav>
 
-      <div class="hidden md:flex items-center gap-3">
-        <a routerLink="/auth/login"
-           class="text-sm font-medium text-zinc-700 hover:text-zinc-900 px-3 py-2 transition-colors">
-          Sign in
-        </a>
-        <a routerLink="/auth/register"
-           class="text-sm font-medium bg-forge-600 text-white px-4 py-2 rounded-lg hover:bg-forge-700 transition-colors">
-          Get started
-        </a>
+      <div class="hidden md:flex items-center gap-2">
+        <a routerLink="/auth/login" class="text-sm font-medium px-4 py-2 link-u">Sign in</a>
+        <a routerLink="/auth/register" class="magnetic btn-ink">Start a workspace</a>
       </div>
 
-      <button class="md:hidden text-zinc-700" (click)="mobileMenuOpen.set(!mobileMenuOpen())">
+      <button class="md:hidden w-10 h-10 flex items-center justify-center" (click)="mobileMenuOpen.set(!mobileMenuOpen())" aria-label="Menu">
         <mat-icon>{{ mobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
       </button>
     </div>
 
     @if (mobileMenuOpen()) {
-      <div class="md:hidden border-t border-zinc-100 px-6 py-4 space-y-3">
-        <a href="#features" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">Features</a>
-        <a href="#ai" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">AI</a>
-        <a href="#faq" class="block text-sm text-zinc-600" (click)="mobileMenuOpen.set(false)">FAQ</a>
-        <div class="flex gap-3 pt-2">
-          <a routerLink="/auth/login" class="flex-1 text-center text-sm font-medium border border-zinc-200 rounded-lg px-4 py-2">Sign in</a>
-          <a routerLink="/auth/register" class="flex-1 text-center text-sm font-medium bg-forge-600 text-white rounded-lg px-4 py-2">Get started</a>
-        </div>
+      <div class="md:hidden bg-canvas border-t border-line px-6 py-6 space-y-4 text-lg font-display">
+        <a href="#how" (click)="goTo($event, '#how')" class="block">How it works</a>
+        <a href="#inside" (click)="goTo($event, '#inside')" class="block">What is inside</a>
+        <a href="#assistant" (click)="goTo($event, '#assistant')" class="block">Assistant</a>
+        <a routerLink="/auth/login" class="block">Sign in</a>
+        <a routerLink="/auth/register" class="btn-ink inline-block">Start a workspace</a>
       </div>
     }
   </header>
 
   <!-- Hero -->
-  <section class="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center overflow-hidden">
-    <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
-      <div class="aurora-blob aurora-blob--one"></div>
-      <div class="aurora-blob aurora-blob--two"></div>
-      <div class="aurora-blob aurora-blob--three"></div>
-    </div>
+  <section id="top" class="hero relative min-h-screen flex flex-col justify-center overflow-hidden">
+    <canvas #embers class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
 
-    <div class="hero-anim inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-50 text-accent-700 text-xs font-mono uppercase tracking-widest mb-6">
-      <mat-icon class="!text-sm !w-4 !h-4">auto_awesome</mat-icon>
-      AI augmented · multitenant · realtime
-    </div>
-    <h1 class="hero-anim font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] mb-6">
-      Project management,
-      <span class="text-forge-600 italic">built like production software</span>
-    </h1>
-    <p class="hero-anim text-lg text-zinc-500 max-w-2xl mx-auto mb-10">
-      Workspaces, Kanban boards, automations, AI, and realtime collaboration, the platform
-      Jira, Linear, and Monday.com trained your team to expect, engineered from the ground up
-      with .NET 8 and Angular 18.
-    </p>
-    <div class="hero-anim flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a routerLink="/auth/register"
-         class="w-full sm:w-auto text-center bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forge-600/20 transition-all">
-        Create your workspace
-      </a>
-      <a routerLink="/auth/login"
-         class="w-full sm:w-auto text-center border border-zinc-200 text-zinc-700 font-medium px-8 py-3.5 rounded-lg hover:border-zinc-300 hover:bg-zinc-50 hover:-translate-y-0.5 transition-all">
-        Sign in
-      </a>
-    </div>
-  </section>
+    <div class="relative max-w-[88rem] w-full mx-auto px-6 md:px-10 pt-28 pb-24">
+      <div class="eyebrow hero-fade mb-8">Project management with a spine</div>
 
-  <!-- Tech stack strip -->
-  <section class="border-y border-zinc-100 bg-zinc-50/60">
-    <div class="max-w-6xl mx-auto px-6 py-8">
-      <p class="text-center text-xs font-mono uppercase tracking-widest text-zinc-400 mb-5">
-        Real engineering, not a mockup
-      </p>
-      <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-        @for (tech of techStack; track tech) {
-          <span class="tech-item text-sm font-medium text-zinc-500">{{ tech }}</span>
-        }
-      </div>
-    </div>
-  </section>
+      <h1 class="hero-title font-display">
+        <span class="line"><span class="line-in">Plan in the open.</span></span>
+        <span class="line"><span class="line-in">Ship in the <em class="text-ember-500">heat.</em></span></span>
+      </h1>
 
-  <!-- Features -->
-  <section id="features" class="max-w-6xl mx-auto px-6 py-24">
-    <div class="text-center mb-16">
-      <p class="text-xs font-mono uppercase tracking-widest text-accent-700 mb-3">What's actually built</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight">Everything a team needs, working today</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (feature of features; track feature.number) {
-        <div class="feature-card border border-zinc-200 rounded-xl p-6 hover:border-forge-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/60 transition-all duration-300">
-          <div class="flex items-center justify-between mb-4">
-            <span class="font-mono text-xs text-zinc-400">{{ feature.number }}</span>
-            <div class="w-9 h-9 rounded-lg bg-forge-50 flex items-center justify-center">
-              <mat-icon class="!text-lg !w-5 !h-5 text-forge-600">{{ feature.icon }}</mat-icon>
-            </div>
-          </div>
-          <h3 class="font-display font-semibold text-lg mb-2">{{ feature.title }}</h3>
-          <p class="text-sm text-zinc-500 leading-relaxed">{{ feature.description }}</p>
-        </div>
-      }
-    </div>
-  </section>
-
-  <!-- AI spotlight -->
-  <section id="ai" class="bg-zinc-950 text-white">
-    <div class="max-w-6xl mx-auto px-6 py-24">
-      <div class="text-center mb-16">
-        <p class="text-xs font-mono uppercase tracking-widest text-accent-400 mb-3">The AI engine</p>
-        <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-          AI as a feature, <span class="italic text-forge-400">not a chatbot bolted on</span>
-        </h2>
-        <p class="text-zinc-400 max-w-xl mx-auto">
-          Every suggestion is reviewed before it changes anything: you approve subtasks, confirm
-          an assignment, or just read a summary. The model never writes to your board on its own.
+      <div class="mt-10 md:mt-14 grid md:grid-cols-12 gap-8 items-end">
+        <p class="hero-fade md:col-span-5 text-lg md:text-xl text-ink-soft leading-relaxed">
+          FlowForge is a workspace for teams that move fast: boards that update live, sprints that tell the truth,
+          and an assistant that answers from your own documents and shows where it found the answer.
         </p>
+        <div class="hero-fade md:col-span-7 md:justify-self-end flex flex-wrap items-center gap-4">
+          <a routerLink="/auth/register" class="magnetic btn-ink btn-lg">Start a workspace</a>
+          <a href="#how" (click)="goTo($event, '#how')" class="magnetic btn-line btn-lg">See it work</a>
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        @for (capability of aiCapabilities; track capability.title) {
-          <div class="ai-card border border-zinc-800 rounded-xl p-6 bg-zinc-900/50 hover:border-accent-500/40 hover:-translate-y-1 hover:bg-zinc-900 transition-all duration-300">
-            <div class="w-10 h-10 rounded-lg bg-accent-500/10 flex items-center justify-center mb-4">
-              <mat-icon class="!text-lg !w-5 !h-5 text-accent-400">{{ capability.icon }}</mat-icon>
-            </div>
-            <h3 class="font-display font-semibold text-lg mb-2">{{ capability.title }}</h3>
-            <p class="text-sm text-zinc-400 leading-relaxed">{{ capability.description }}</p>
-          </div>
-        }
+    </div>
+
+    <div class="absolute bottom-0 inset-x-0 border-t border-line bg-canvas/70 backdrop-blur-sm">
+      <div class="marquee py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-muted">
+        <div class="marquee-track">
+          @for (n of [1, 2]; track n) {
+            @for (t of techStack; track t) {
+              <span class="inline-flex items-center gap-8 pr-8">{{ t }}<i class="w-1 h-1 rounded-full bg-ember-500"></i></span>
+            }
+          }
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Split section -->
-  <section class="grid grid-cols-1 md:grid-cols-2">
-    <a routerLink="/auth/register"
-       class="split-panel group px-8 py-20 md:py-28 bg-forge-600 text-white flex flex-col justify-center hover:bg-forge-700 transition-colors">
-      <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">groups</mat-icon>
-      <h3 class="font-display text-2xl font-semibold mb-2">For your team</h3>
-      <p class="text-forge-100 mb-4 max-w-sm">
-        Create a workspace, invite your team, and organize work into boards with drag and drop,
-        sprints, comments, and realtime updates.
-      </p>
-      <span class="inline-flex items-center gap-1 font-medium text-sm">
-        Get started <mat-icon class="!text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
-      </span>
-    </a>
-    <a routerLink="/auth/register"
-       class="split-panel group px-8 py-20 md:py-28 bg-zinc-950 text-white flex flex-col justify-center hover:bg-zinc-900 transition-colors">
-      <mat-icon class="!text-3xl !w-9 !h-9 mb-4 text-white/70">admin_panel_settings</mat-icon>
-      <h3 class="font-display text-2xl font-semibold mb-2">For your organization</h3>
-      <p class="text-zinc-400 mb-4 max-w-sm">
-        A separate admin application to manage every tenant and user, watch systemwide stats,
-        and review a full audit trail. The first account you create becomes the admin.
-      </p>
-      <span class="inline-flex items-center gap-1 font-medium text-sm text-accent-400">
-        Learn more <mat-icon class="!text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
-      </span>
-    </a>
+  <!-- Signature scene: a board assembles itself as you scroll -->
+  <section id="how" class="scene relative bg-ink text-canvas">
+    <div class="scene-pin h-screen w-full flex items-center">
+      <div class="max-w-[88rem] w-full mx-auto px-6 md:px-10 grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+
+        <div class="lg:col-span-4 relative min-h-[15rem] lg:min-h-[26rem] flex flex-col justify-center">
+          <div class="eyebrow !text-canvas/50 mb-6">How a board comes together</div>
+          <div class="step-wrap relative">
+            @for (s of steps; track s.title; let i = $index) {
+              <div class="step absolute inset-x-0 top-0" [attr.data-step]="i">
+                <h2 class="font-display text-5xl md:text-6xl leading-[0.95]">{{ s.title }}</h2>
+                <p class="mt-5 text-lg text-canvas/70 leading-relaxed max-w-md">{{ s.text }}</p>
+              </div>
+            }
+            <div class="invisible" aria-hidden="true">
+              <h2 class="font-display text-5xl md:text-6xl">.</h2>
+              <p class="mt-5 text-lg max-w-md">{{ steps[0].text }} {{ steps[1].text }}</p>
+            </div>
+          </div>
+          <div class="mt-10 h-px bg-canvas/15 relative max-w-xs">
+            <div class="scene-progress absolute inset-y-0 left-0 bg-ember-500 h-px w-full origin-left" style="transform: scaleX(0)"></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-8">
+          <div class="stage rounded-xl border border-canvas/15 bg-canvas/[0.04] p-4 md:p-6">
+            <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-canvas/45 mb-4">
+              <span>Sample board</span>
+              <span>Sprint 7</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 md:gap-5">
+              @for (col of columns; track col.name; let c = $index) {
+                <div class="col" [attr.data-col]="c">
+                  <div class="flex items-center justify-between mb-3 font-mono text-[10px] uppercase tracking-[0.16em]">
+                    <span class="text-canvas/70">{{ col.name }}</span>
+                    <span class="col-count text-ember-400" [attr.data-start]="col.cards.length">{{ col.cards.length }}</span>
+                  </div>
+                  <div class="slots">
+                    @for (card of col.cards; track card.id; let r = $index) {
+                      <div class="slot-card" [attr.data-card]="card.id" [attr.data-col]="c" [attr.data-row]="r">
+                        <div class="mini-card">
+                          <span class="bar" [style.background]="card.color"></span>
+                          <div class="font-mono text-[9px] text-canvas/45 mb-0.5">{{ card.id }}</div>
+                          <div class="text-[11px] md:text-[13px] leading-tight text-canvas/90">{{ card.title }}</div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Horizontal rail: what is inside -->
+  <section id="inside" class="rail relative bg-canvas">
+    <div class="rail-pin min-h-screen flex flex-col justify-center py-24 lg:py-0">
+      <div class="max-w-[88rem] w-full mx-auto px-6 md:px-10 mb-10 lg:mb-14">
+        <div class="eyebrow mb-4">What is inside</div>
+        <h2 class="font-display text-5xl md:text-7xl leading-[0.95] max-w-4xl">Everything a team needs, and not a feature more.</h2>
+      </div>
+
+      <div class="rail-track flex gap-5 md:gap-8 px-6 md:px-10 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x lg:snap-none">
+
+        <article class="panel snap-start">
+          <div class="eyebrow">Boards</div>
+          <h3 class="panel-title">Cards move on every screen the moment someone drops them.</h3>
+          <div class="panel-visual">
+            <div class="grid grid-cols-2 gap-3 w-full">
+              <div class="space-y-2"><div class="vc">Fix login</div><div class="vc vc-slide">Review PR</div></div>
+              <div class="space-y-2"><div class="vc">Seed data</div><div class="vc vc-ghost">drop here</div></div>
+            </div>
+            <span class="who">Maya moved a card</span>
+          </div>
+        </article>
+
+        <article class="panel snap-start">
+          <div class="eyebrow">Sprints</div>
+          <h3 class="panel-title">Burndown that follows real progress, in points or in tasks.</h3>
+          <div class="panel-visual">
+            <svg viewBox="0 0 300 140" class="w-full" fill="none" aria-hidden="true">
+              <path d="M10 130H290M10 10V130" stroke="#C6BFAE" stroke-width="1"/>
+              <path d="M10 20L290 120" stroke="#978F7F" stroke-width="1.5" stroke-dasharray="4 5"/>
+              <path class="burn" d="M10 20L60 34L110 52L160 58L210 84L260 96L290 108" stroke="#F2501C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </article>
+
+        <article class="panel snap-start">
+          <div class="eyebrow">Automations</div>
+          <h3 class="panel-title">Rules that act for you when work changes hands.</h3>
+          <div class="panel-visual">
+            <div class="flex flex-col items-start gap-3 w-full">
+              <span class="chip">When a task moves to In Review</span>
+              <span class="w-px h-5 bg-ember-500 ml-6"></span>
+              <span class="chip chip-ember">Notify Maya</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel snap-start">
+          <div class="eyebrow">Workspaces</div>
+          <h3 class="panel-title">One person, many workspaces. Five roles decide who can do what.</h3>
+          <div class="panel-visual">
+            <div class="flex flex-wrap gap-2">
+              @for (r of roles; track r) { <span class="chip">{{ r }}</span> }
+            </div>
+          </div>
+        </article>
+
+        <article class="panel snap-start">
+          <div class="eyebrow">Tasks</div>
+          <h3 class="panel-title">Files up to 25 MB and the hours spent, on the task itself.</h3>
+          <div class="panel-visual">
+            <div class="w-full space-y-3">
+              <div class="chip w-full justify-between"><span>handbook.pdf</span><span class="text-ink-muted">2.4 MB</span></div>
+              <div class="h-1.5 bg-line rounded-full overflow-hidden"><div class="h-full w-2/3 bg-ember-500"></div></div>
+              <div class="font-mono text-[11px] text-ink-muted">5h logged of 8h estimated</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Assistant -->
+  <section id="assistant" class="relative bg-ink text-canvas py-28 md:py-40 overflow-hidden">
+    <div class="max-w-[88rem] mx-auto px-6 md:px-10 grid lg:grid-cols-12 gap-14 items-start">
+      <div class="lg:col-span-6">
+        <div class="eyebrow !text-canvas/50 mb-6">Assistant</div>
+        <h2 class="font-display text-5xl md:text-7xl leading-[0.95] reveal">Ask your workspace. <em class="text-ember-400">Get the source.</em></h2>
+
+        <ul class="mt-12 border-t border-canvas/15">
+          @for (p of principles; track p) {
+            <li class="reveal py-5 border-b border-canvas/15 text-lg text-canvas/80">{{ p }}</li>
+          }
+        </ul>
+      </div>
+
+      <div class="lg:col-span-6">
+        <div class="chat reveal bg-canvas text-ink rounded-xl p-5 md:p-7 shadow-lift">
+          <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-ink-muted mb-6">
+            <span>Example conversation</span><span class="flex items-center gap-1.5"><i class="w-1.5 h-1.5 rounded-full bg-tone-ok-fg"></i>Answering</span>
+          </div>
+          <div class="bg-sunken rounded-lg px-4 py-3 text-[15px] w-fit max-w-[85%] ml-auto">Who is allowed to invite people into the workspace?</div>
+          <div class="mt-5 text-[17px] leading-relaxed min-h-[5.5rem]"><span class="typed"></span><span class="caret"></span></div>
+          <div class="cite mt-4 flex flex-wrap gap-2 opacity-0">
+            <span class="chip chip-ember">handbook.md · page 1</span>
+          </div>
+          <div class="mt-7 pt-4 border-t border-line text-[13px] text-ink-muted">
+            Ask something the documents do not cover and the assistant answers "I do not know" instead of guessing.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Typographic break -->
+  <section class="py-16 md:py-24 overflow-hidden border-b border-line">
+    <div class="big-marquee font-display text-[clamp(4rem,14vw,12rem)] leading-none whitespace-nowrap">
+      <div class="big-track">
+        @for (n of [1, 2]; track n) {
+          <span class="pr-12">Plan <i class="text-ember-500">/</i> Sprint <i class="text-ember-500">/</i> Ship <i class="text-ember-500">/</i> Review <i class="text-ember-500">/</i> Repeat <i class="text-ember-500">/</i></span>
+        }
+      </div>
+    </div>
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="max-w-3xl mx-auto px-6 py-24">
-    <div class="text-center mb-12">
-      <p class="text-xs font-mono uppercase tracking-widest text-accent-700 mb-3">Questions</p>
-      <h2 class="font-display text-3xl font-semibold tracking-tight">Frequently asked</h2>
+  <section id="faq" class="max-w-[88rem] mx-auto px-6 md:px-10 py-24 md:py-36 grid lg:grid-cols-12 gap-12">
+    <div class="lg:col-span-4">
+      <div class="eyebrow mb-4">Questions</div>
+      <h2 class="font-display text-5xl md:text-6xl leading-[0.95]">Straight answers.</h2>
     </div>
-    <div class="space-y-3">
-      @for (faq of faqs(); track faq.question; let i = $index) {
-        <div class="faq-item border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 transition-colors">
-          <button (click)="toggleFaq(i)"
-                  class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors">
-            <span class="font-medium text-zinc-900">{{ faq.question }}</span>
-            <mat-icon class="!text-lg text-zinc-400 flex-shrink-0 transition-transform duration-300"
-                      [class.rotate-180]="faq.open">expand_more</mat-icon>
+    <div class="lg:col-span-8 border-t border-line-strong">
+      @for (f of faqs(); track f.question; let i = $index) {
+        <div class="reveal border-b border-line-strong">
+          <button class="w-full flex items-center justify-between gap-6 py-6 text-left" (click)="toggleFaq(i)" [attr.aria-expanded]="f.open">
+            <span class="font-display text-2xl md:text-3xl leading-tight">{{ f.question }}</span>
+            <span class="faq-plus shrink-0 w-8 h-8 border border-ink rounded-full flex items-center justify-center transition-transform duration-300"
+                  [class.rotate-45]="f.open"><mat-icon class="!text-base !w-4 !h-4">add</mat-icon></span>
           </button>
-          <div class="faq-panel" [class.faq-panel--open]="faq.open">
-            <div>
-              <p class="px-5 pb-4 text-sm text-zinc-500 leading-relaxed">{{ faq.answer }}</p>
-            </div>
+          <div class="grid transition-[grid-template-rows] duration-500 ease-out" [style.grid-template-rows]="f.open ? '1fr' : '0fr'">
+            <div class="overflow-hidden"><p class="pb-7 max-w-2xl text-lg text-ink-soft leading-relaxed">{{ f.answer }}</p></div>
           </div>
         </div>
       }
     </div>
   </section>
 
-  <!-- CTA band -->
-  <section class="bg-zinc-50 border-y border-zinc-100">
-    <div class="cta-content max-w-3xl mx-auto px-6 py-20 text-center">
-      <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-        Ready to see it running?
-      </h2>
-      <p class="text-zinc-500 mb-8">
-        Create a workspace in under a minute. No credit card, no sales call.
-      </p>
-      <a routerLink="/auth/register"
-         class="inline-block bg-forge-600 text-white font-medium px-8 py-3.5 rounded-lg hover:bg-forge-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forge-600/20 transition-all">
-        Create your workspace
-      </a>
+  <!-- Closing -->
+  <section class="relative bg-ember-500 text-ink overflow-hidden">
+    <div class="max-w-[88rem] mx-auto px-6 md:px-10 py-24 md:py-40 text-center">
+      <h2 class="cta-title font-display text-[clamp(3.5rem,13vw,11rem)] leading-[0.9]">Start forging.</h2>
+      <p class="mt-8 text-xl max-w-xl mx-auto text-ink/80">Create a workspace in a minute and invite your team by email.</p>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <a routerLink="/auth/register" class="magnetic btn-ink btn-lg">Create your workspace</a>
+        <a routerLink="/auth/login" class="magnetic btn-line btn-lg !border-ink">Sign in</a>
+      </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="max-w-7xl mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
-      <div class="w-6 h-6 rounded-md bg-forge-600 flex items-center justify-center">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-          <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-          <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-        </svg>
-      </div>
-      <span class="font-display font-semibold text-sm">FlowForge</span>
+  <footer class="bg-ink text-canvas/60">
+    <div class="max-w-[88rem] mx-auto px-6 md:px-10 py-8 flex flex-wrap items-center justify-between gap-4 text-sm">
+      <span class="flex items-baseline gap-1 text-canvas"><span class="font-display text-2xl leading-none">FlowForge</span><i class="w-1.5 h-1.5 rounded-full bg-ember-500"></i></span>
+      <span class="font-mono text-[11px] uppercase tracking-[0.14em]">Built with {{ techStack.join(', ') }}</span>
+      <span>© 2026 FlowForge</span>
     </div>
-    <p class="text-xs text-zinc-400 text-center">
-      An AI augmented, multitenant project management platform, built with .NET 8, Angular 18, and a production grade, event driven architecture.
-    </p>
   </footer>
 </div>

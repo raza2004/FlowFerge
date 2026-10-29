@@ -11,12 +11,13 @@ import { AdminUserDto } from '../../shared/models/admin.models';
   imports: [CommonModule, DatePipe, MatIconModule, MatButtonModule],
   template: `
     <div class="max-w-6xl mx-auto px-8 py-10">
-      <h1 class="text-3xl font-display font-semibold text-zinc-900 mb-2">Users</h1>
-      <p class="text-zinc-500 mb-8">{{ users().length }} accounts across the system</p>
+      <div class="eyebrow mb-2">People</div>
+      <h1 class="text-5xl font-display text-ink mb-3">Users</h1>
+      <p class="text-ink-muted mb-8">{{ users().length }} accounts across the system</p>
 
-      <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+      <div class="bg-panel rounded-xl border border-line overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase tracking-wide">
+          <thead class="bg-sunken text-ink-muted text-xs uppercase tracking-wide">
             <tr>
               <th class="text-left px-4 py-2.5 font-medium">User</th>
               <th class="text-left px-4 py-2.5 font-medium">Role</th>
@@ -26,12 +27,12 @@ import { AdminUserDto } from '../../shared/models/admin.models';
               <th class="px-4 py-2.5"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-zinc-100">
+          <tbody class="divide-y divide-line">
             @for (u of users(); track u.id) {
-              <tr class="hover:bg-zinc-50">
+              <tr class="hover:bg-sunken">
                 <td class="px-4 py-3">
-                  <div class="font-medium text-zinc-900">{{ u.fullName }}</div>
-                  <div class="text-xs text-zinc-400">{{ u.email }}</div>
+                  <div class="font-medium text-ink">{{ u.fullName }}</div>
+                  <div class="text-xs text-ink-faint">{{ u.email }}</div>
                 </td>
                 <td class="px-4 py-3">
                   @if (u.isSystemAdmin) {
@@ -39,11 +40,11 @@ import { AdminUserDto } from '../../shared/models/admin.models';
                       <mat-icon class="!text-sm !w-3.5 !h-3.5">shield</mat-icon> Admin
                     </span>
                   } @else {
-                    <span class="text-xs text-zinc-500">Member</span>
+                    <span class="text-xs text-ink-muted">Member</span>
                   }
                 </td>
-                <td class="px-4 py-3 text-zinc-600">{{ u.createdAt | date:'MMM d, y' }}</td>
-                <td class="px-4 py-3 text-zinc-600">{{ u.lastLoginAt ? (u.lastLoginAt | date:'MMM d, y') : 'N/A' }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ u.createdAt | date:'MMM d, y' }}</td>
+                <td class="px-4 py-3 text-ink-soft">{{ u.lastLoginAt ? (u.lastLoginAt | date:'MMM d, y') : 'N/A' }}</td>
                 <td class="px-4 py-3">
                   @if (u.status === 'Suspended') {
                     <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Suspended</span>

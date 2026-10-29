@@ -118,6 +118,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middleware order is important
+// First, so even error responses and the request log carry the correlation id.
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // One structured line per request (path only, never the query string, which carries the
@@ -143,9 +145,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("Frontend");
 app.UseAuthentication();
-app.UseAuthorization();
-// After authentication so the global limit can partition by signed-in user.
+// After authentication, so the global limit can partition by signed-in user, but BEFORE authorization:
+// authorization answers an anonymous request with 401 and stops there, so a limiter placed after it
+// would never count (or throttle) unauthenticated floods.
 if (builder.Configuration.GetValue("RateLimiting:Enabled", true)) app.UseRateLimiter();
+app.UseAuthorization();
 
 // Every log line written while handling a request carries who and which workspace it was for.
 app.Use(async (http, next) =>

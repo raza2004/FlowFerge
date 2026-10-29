@@ -1,3 +1,4 @@
+import { AuthBrandPanelComponent } from '../auth-brand-panel.component';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -20,7 +21,7 @@ interface AuthError {
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, AuthBrandPanelComponent
   ],
   templateUrl: './login.component.html'
 })

@@ -131,3 +131,16 @@ def test_llm_outage_becomes_503_not_a_crash(monkeypatch):
 def test_correlation_id_is_echoed():
     response = client.get("/health", headers={"X-Correlation-Id": "abc-123"})
     assert response.headers["X-Correlation-Id"] == "abc-123"
+
+
+def test_provider_rate_limit_becomes_429_so_callers_do_not_retry(monkeypatch):
+    monkeypatch.setattr(answer_mod, "search", lambda *a, **k: hits())
+
+    class Limited:
+        def complete(self, *a, **k):
+            raise llm.LlmUnavailable("429 everywhere", rate_limited=True)
+
+    llm.set_llm(Limited())
+    response = client.post("/ask", json={"question": "hi"}, headers=TENANT)
+    assert response.status_code == 429
+    assert response.headers["Retry-After"] == "30"

@@ -70,6 +70,7 @@ public static class DependencyInjection
 
         // AI
         services.AddSingleton<IAiService, OpenAiService>();
+        services.AddAiServiceClient(config);
 
         services.AddSingleton<IAppLinks, AppLinks>();
 

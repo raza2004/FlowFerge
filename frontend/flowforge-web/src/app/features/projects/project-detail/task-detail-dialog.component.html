@@ -1,7 +1,7 @@
 @if (loading() && !task()) {
   <div class="p-10 space-y-4">
-    <div class="h-4 w-24 rounded bg-zinc-200 animate-pulse"></div>
-    <div class="h-7 w-2/3 rounded bg-zinc-200 animate-pulse"></div>
+    <div class="h-4 w-24 rounded bg-line animate-pulse"></div>
+    <div class="h-7 w-2/3 rounded bg-line animate-pulse"></div>
     <div class="h-24 w-full rounded bg-sunken animate-pulse"></div>
   </div>
 } @else if (task(); as t) {
@@ -11,7 +11,7 @@
       <button class="flex items-center gap-1 text-xs text-forge-600 hover:underline" (click)="loadTask(t.parentTaskId)">
         <mat-icon class="!text-sm !w-4 !h-4">arrow_upward</mat-icon> Parent task
       </button>
-      <span class="text-zinc-300">/</span>
+      <span class="text-ink-faint">/</span>
     }
     <span class="font-mono text-xs text-ink-muted">{{ t.taskNumber }}</span>
     <span class="text-xs px-2 py-0.5 rounded-full"
@@ -94,7 +94,7 @@
               <li>
                 <button class="w-full flex items-center gap-2 text-left text-sm rounded-md px-2 py-1.5 hover:bg-canvas"
                         (click)="loadTask(s.id)">
-                  <mat-icon class="!text-base !w-4 !h-4" [class]="s.isCompleted ? 'text-accent-600' : 'text-zinc-300'">
+                  <mat-icon class="!text-base !w-4 !h-4" [class]="s.isCompleted ? 'text-accent-600' : 'text-ink-faint'">
                     {{ s.isCompleted ? 'check_circle' : 'radio_button_unchecked' }}
                   </mat-icon>
                   <span class="font-mono text-xs text-ink-faint">{{ s.taskNumber }}</span>
@@ -123,7 +123,7 @@
         @if (t.attachments.length) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             @for (a of t.attachments; track a.id) {
-              <div class="group flex items-center gap-2 border border-line rounded-lg p-2 hover:border-zinc-300">
+              <div class="group flex items-center gap-2 border border-line rounded-lg p-2 hover:border-line-strong">
                 @if (a.isPreviewableImage && thumbnails()[a.id]) {
                   <button type="button" class="w-10 h-10 rounded-md overflow-hidden flex-shrink-0 bg-sunken" (click)="openImage(a)">
                     <img [src]="thumbnails()[a.id]" [alt]="a.fileName" class="w-full h-full object-cover">
@@ -151,7 +151,7 @@
           <p class="text-xs text-ink-faint">Uploading files is turned off for this workspace. Existing files can still be downloaded.</p>
         } @else {
         <label class="flex items-center justify-center gap-2 border-2 border-dashed rounded-lg px-3 py-3 text-sm cursor-pointer transition-colors"
-               [class]="dragOver() ? 'border-forge-400 bg-forge-50 text-forge-700' : 'border-line text-ink-muted hover:border-zinc-300'"
+               [class]="dragOver() ? 'border-forge-400 bg-forge-50 text-forge-700' : 'border-line text-ink-muted hover:border-line-strong'"
                (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
           <mat-icon class="!text-lg">{{ uploading() ? 'hourglass_top' : 'upload_file' }}</mat-icon>
           <span>{{ uploading() ? 'Uploading...' : 'Drop files here or click to browse (max 25 MB each)' }}</span>
@@ -208,7 +208,7 @@
                     class="w-full text-sm border border-line rounded-lg px-3 py-2 focus:border-forge-400 focus:outline-none resize-y"></textarea>
 
           @if (mentionSuggestions().length > 0) {
-            <div class="absolute left-0 bottom-full mb-1 w-64 bg-white border border-line rounded-lg shadow-lg py-1 z-10">
+            <div class="absolute left-0 bottom-full mb-1 w-64 bg-panel border border-line rounded-lg shadow-lg py-1 z-10">
               @for (m of mentionSuggestions(); track m.userId; let first = $first) {
                 <button class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-forge-50"
                         [class.bg-canvas]="first" (mousedown)="$event.preventDefault(); insertMention(m)">
@@ -233,7 +233,7 @@
     <div class="space-y-5 text-sm" [formGroup]="form">
       <div>
         <div class="text-xs font-medium uppercase tracking-wide text-ink-muted mb-1.5">Assignee</div>
-        <select class="w-full border border-line rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none"
+        <select class="w-full border border-line rounded-md px-2 py-1.5 bg-panel focus:border-forge-400 focus:outline-none"
                 (change)="assign($any($event.target).value)">
           @if (!t.assigneeId) { <option value="" disabled selected>Unassigned</option> }
           @for (m of data.members; track m.userId) {
@@ -245,13 +245,13 @@
       <div class="grid grid-cols-2 gap-3">
         <div>
           <div class="text-xs font-medium uppercase tracking-wide text-ink-muted mb-1.5">Type</div>
-          <select formControlName="type" class="w-full border border-line rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none">
+          <select formControlName="type" class="w-full border border-line rounded-md px-2 py-1.5 bg-panel focus:border-forge-400 focus:outline-none">
             @for (o of types; track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }
           </select>
         </div>
         <div>
           <div class="text-xs font-medium uppercase tracking-wide text-ink-muted mb-1.5">Priority</div>
-          <select formControlName="priority" class="w-full border border-line rounded-md px-2 py-1.5 bg-white focus:border-forge-400 focus:outline-none">
+          <select formControlName="priority" class="w-full border border-line rounded-md px-2 py-1.5 bg-panel focus:border-forge-400 focus:outline-none">
             @for (o of priorities; track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }
           </select>
         </div>
@@ -299,7 +299,7 @@
                  maxlength="500" (keydown.enter)="logTime()"
                  class="flex-1 min-w-0 border border-line rounded-md px-2 py-1 text-xs focus:border-forge-400 focus:outline-none">
         </div>
-        <button class="mt-1 text-xs text-forge-600 font-medium disabled:text-zinc-300"
+        <button class="mt-1 text-xs text-forge-600 font-medium disabled:text-ink-faint"
                 [disabled]="!logHours || logHours <= 0 || logHours > 24" (click)="logTime()">Log time</button>
 
         @if (t.timeEntries.length) {
@@ -374,7 +374,7 @@
               <input [(ngModel)]="newLabelName" [ngModelOptions]="{ standalone: true }" (keydown.enter)="createLabel()"
                      placeholder="New label" maxlength="50"
                      class="flex-1 min-w-0 text-xs border border-line rounded px-2 py-1 focus:border-forge-400 focus:outline-none">
-              <button class="text-xs text-forge-600 font-medium px-1 disabled:text-zinc-300"
+              <button class="text-xs text-forge-600 font-medium px-1 disabled:text-ink-faint"
                       [disabled]="!newLabelName.trim()" (click)="createLabel()">Create</button>
             </div>
           </div>
@@ -387,7 +387,7 @@
         @if (t.watchers.length) {
           <div class="flex -space-x-1.5">
             @for (w of t.watchers; track w.userId) {
-              <span class="w-7 h-7 rounded-full bg-zinc-200 border-2 border-white text-[10px] font-bold text-ink-soft flex items-center justify-center"
+              <span class="w-7 h-7 rounded-full bg-line border-2 border-white text-[10px] font-bold text-ink-soft flex items-center justify-center"
                     [matTooltip]="w.fullName">{{ initials(w.fullName) }}</span>
             }
           </div>

@@ -29,7 +29,8 @@ public static class ObservabilityExtensions
             .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", application)
-            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+            .Enrich.WithProperty("CorrelationId", "-")
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
         var seqUrl = config["Seq:ServerUrl"];
         if (!string.IsNullOrWhiteSpace(seqUrl))

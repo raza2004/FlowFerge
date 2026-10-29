@@ -5,22 +5,22 @@
 
   @if (isLoading()) {
     <div class="flex items-center gap-4 mb-6">
-      <div class="w-10 h-10 rounded-lg bg-gray-200 animate-pulse"></div>
+      <div class="w-10 h-10 rounded-lg bg-line animate-pulse"></div>
       <div class="space-y-1.5">
-        <div class="h-4 w-40 rounded bg-gray-200 animate-pulse"></div>
-        <div class="h-2.5 w-20 rounded bg-gray-100 animate-pulse"></div>
+        <div class="h-4 w-40 rounded bg-line animate-pulse"></div>
+        <div class="h-2.5 w-20 rounded bg-sunken animate-pulse"></div>
       </div>
     </div>
     <div class="flex gap-4 overflow-x-auto pb-4 flex-1">
       @for (col of [1,2,3]; track col) {
-        <div class="w-80 flex-shrink-0 bg-gray-100 rounded-lg flex flex-col max-h-full">
-          <div class="px-3 py-2 flex items-center gap-2 border-b border-gray-200">
-            <div class="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
-            <div class="h-3 w-20 rounded bg-gray-300 animate-pulse"></div>
+        <div class="w-80 flex-shrink-0 bg-sunken rounded-lg flex flex-col max-h-full">
+          <div class="px-3 py-2 flex items-center gap-2 border-b border-line">
+            <div class="w-3 h-3 rounded-full bg-line-strong animate-pulse"></div>
+            <div class="h-3 w-20 rounded bg-line-strong animate-pulse"></div>
           </div>
           <div class="p-3 space-y-2">
             @for (card of [1,2,3]; track card) {
-              <div class="h-16 rounded-lg bg-white border border-gray-200 animate-pulse"></div>
+              <div class="h-16 rounded-lg bg-panel border border-line animate-pulse"></div>
             }
           </div>
         </div>
@@ -34,7 +34,7 @@
         {{ project()!.key.substring(0, 2) }}
       </div>
       <div class="mr-2">
-        <h1 class="text-xl font-semibold text-ink leading-tight">{{ project()!.name }}</h1>
+        <h1 class="text-4xl font-display text-ink leading-none">{{ project()!.name }}</h1>
         <p class="text-[11px] text-ink-muted font-mono">{{ project()!.key }}</p>
       </div>
 
@@ -281,21 +281,21 @@
       </div>
     } @else {
       <mat-card class="!p-12 text-center">
-        <mat-icon class="!text-6xl !w-16 !h-16 text-gray-400">view_kanban</mat-icon>
+        <mat-icon class="!text-6xl !w-16 !h-16 text-ink-faint">view_kanban</mat-icon>
         <h3 class="text-lg font-semibold mt-4">No boards yet</h3>
-        <p class="text-gray-500">This project doesn't have any boards.</p>
+        <p class="text-ink-muted">This project doesn't have any boards.</p>
       </mat-card>
     }
 
     @if (board()) {
       @if (features.isEnabled(FEATURE_AI)) {
-      <div class="mt-6 bg-white border border-gray-200 rounded-lg">
-        <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+      <div class="mt-6 bg-panel border border-line rounded-lg">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-line">
           <div>
-            <h2 class="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+            <h2 class="font-semibold text-ink text-sm flex items-center gap-1.5">
               <mat-icon class="!text-base text-forge-500">auto_awesome</mat-icon> AI Summary
             </h2>
-            <p class="text-xs text-gray-500">A quick status update generated from this project's tasks</p>
+            <p class="text-xs text-ink-muted">A quick status update generated from this project's tasks</p>
           </div>
           <button mat-stroked-button [disabled]="aiSummaryLoading()" (click)="generateAiSummary()">
             {{ aiSummary() ? 'Regenerate' : 'Generate summary' }}
@@ -303,24 +303,24 @@
         </div>
         <div class="px-4 py-3 text-sm">
           @if (aiSummaryLoading()) {
-            <p class="text-gray-400">Thinking…</p>
+            <p class="text-ink-faint">Thinking…</p>
           } @else if (aiSummaryError()) {
             <p class="text-red-600 text-xs">{{ aiSummaryError() }}</p>
           } @else if (aiSummary()) {
-            <p class="text-gray-700 leading-relaxed">{{ aiSummary() }}</p>
+            <p class="text-ink-soft leading-relaxed">{{ aiSummary() }}</p>
           } @else {
-            <p class="text-gray-400">No summary generated yet.</p>
+            <p class="text-ink-faint">No summary generated yet.</p>
           }
         </div>
       </div>
 
-      <div class="mt-4 bg-white border border-gray-200 rounded-lg">
-        <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+      <div class="mt-4 bg-panel border border-line rounded-lg">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-line">
           <div>
-            <h2 class="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+            <h2 class="font-semibold text-ink text-sm flex items-center gap-1.5">
               <mat-icon class="!text-base text-forge-500">radar</mat-icon> Risks and blockers
             </h2>
-            <p class="text-xs text-gray-500">Overdue, stalled, and overloaded work, with an AI read of what matters most</p>
+            <p class="text-xs text-ink-muted">Overdue, stalled, and overloaded work, with an AI read of what matters most</p>
           </div>
           <button mat-stroked-button [disabled]="blockersLoading()" (click)="scanForBlockers()">
             {{ blockers() ? 'Scan again' : 'Scan for blockers' }}
@@ -328,7 +328,7 @@
         </div>
         <div class="px-4 py-3 text-sm">
           @if (blockersLoading()) {
-            <p class="text-gray-400">Scanning…</p>
+            <p class="text-ink-faint">Scanning…</p>
           } @else if (blockersError()) {
             <p class="text-red-600 text-xs">{{ blockersError() }}</p>
           } @else if (blockers(); as b) {
@@ -339,45 +339,45 @@
             } @else {
               @if (b.aiSummary) {
                 <div class="rounded-lg bg-forge-50 border border-forge-100 p-3 mb-3">
-                  <p class="text-gray-800 leading-relaxed">{{ b.aiSummary }}</p>
+                  <p class="text-ink leading-relaxed">{{ b.aiSummary }}</p>
                   @if (b.recommendations.length) {
-                    <ul class="mt-2 space-y-1 text-gray-700 list-disc list-inside">
+                    <ul class="mt-2 space-y-1 text-ink-soft list-disc list-inside">
                       @for (r of b.recommendations; track $index) { <li>{{ r }}</li> }
                     </ul>
                   }
                 </div>
               } @else if (b.aiMessage) {
-                <p class="text-xs text-gray-500 mb-3">{{ b.aiMessage }}</p>
+                <p class="text-xs text-ink-muted mb-3">{{ b.aiMessage }}</p>
               }
-              <ul class="divide-y divide-gray-100">
+              <ul class="divide-y divide-line">
                 @for (s of b.signals; track $index) {
                   <li class="flex items-start gap-3 py-2">
                     <span class="text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5" [class]="severityClass(s.severity)">{{ s.severity }}</span>
                     <div class="flex-1 min-w-0">
                       @if (s.taskId) {
-                        <button class="text-left text-gray-900 hover:text-forge-600 hover:underline truncate max-w-full"
+                        <button class="text-left text-ink hover:text-forge-600 hover:underline truncate max-w-full"
                                 (click)="openTaskById(s.taskId)">
-                          <span class="font-mono text-xs text-gray-400 mr-1">{{ s.taskNumber }}</span>{{ s.title }}
+                          <span class="font-mono text-xs text-ink-faint mr-1">{{ s.taskNumber }}</span>{{ s.title }}
                         </button>
                       }
-                      <p class="text-xs text-gray-500">{{ s.detail }}</p>
+                      <p class="text-xs text-ink-muted">{{ s.detail }}</p>
                     </div>
                   </li>
                 }
               </ul>
             }
           } @else {
-            <p class="text-gray-400">Not scanned yet.</p>
+            <p class="text-ink-faint">Not scanned yet.</p>
           }
         </div>
       </div>
       }
 
-      <div class="mt-4 bg-white border border-gray-200 rounded-lg">
-        <div class="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+      <div class="mt-4 bg-panel border border-line rounded-lg">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-line">
           <div>
-            <h2 class="font-semibold text-gray-900 text-sm">Automations</h2>
-            <p class="text-xs text-gray-500">When a task moves to a list, automatically notify or assign someone</p>
+            <h2 class="font-semibold text-ink text-sm">Automations</h2>
+            <p class="text-xs text-ink-muted">When a task moves to a list, automatically notify or assign someone</p>
           </div>
           <button mat-stroked-button (click)="openAutomationDialog()">
             <mat-icon class="!text-base">add</mat-icon> New rule
@@ -385,22 +385,22 @@
         </div>
 
         @if (automations().length === 0) {
-          <p class="px-4 py-4 text-sm text-gray-400">No automation rules yet.</p>
+          <p class="px-4 py-4 text-sm text-ink-faint">No automation rules yet.</p>
         } @else {
-          <div class="divide-y divide-gray-100">
+          <div class="divide-y divide-line">
             @for (rule of automations(); track rule.id) {
               <div class="px-4 py-3 flex items-center gap-3">
-                <mat-icon class="!text-base text-gray-400">bolt</mat-icon>
+                <mat-icon class="!text-base text-ink-faint">bolt</mat-icon>
                 <div class="flex-1 min-w-0 text-sm">
-                  <span class="font-medium text-gray-900">{{ rule.name }}</span>
-                  <span class="text-gray-500">: when moved to </span>
-                  <span class="font-medium text-gray-700">{{ rule.triggerListName }}</span>
-                  <span class="text-gray-500">, </span>
-                  <span class="text-gray-700">{{ actionLabel(rule) }}</span>
+                  <span class="font-medium text-ink">{{ rule.name }}</span>
+                  <span class="text-ink-muted">: when moved to </span>
+                  <span class="font-medium text-ink-soft">{{ rule.triggerListName }}</span>
+                  <span class="text-ink-muted">, </span>
+                  <span class="text-ink-soft">{{ actionLabel(rule) }}</span>
                 </div>
                 <mat-slide-toggle [checked]="rule.isEnabled" (change)="toggleAutomation(rule)"></mat-slide-toggle>
                 <button mat-icon-button (click)="deleteAutomation(rule)" matTooltip="Delete rule">
-                  <mat-icon class="!text-base text-gray-400">delete_outline</mat-icon>
+                  <mat-icon class="!text-base text-ink-faint">delete_outline</mat-icon>
                 </button>
               </div>
             }

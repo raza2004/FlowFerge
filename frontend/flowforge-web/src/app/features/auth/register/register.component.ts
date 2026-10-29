@@ -1,3 +1,4 @@
+import { AuthBrandPanelComponent } from '../auth-brand-panel.component';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -30,7 +31,7 @@ function passwordStrengthValidator(control: AbstractControl): ValidationErrors |
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, AuthBrandPanelComponent
   ],
   templateUrl: './register.component.html'
 })

@@ -12,8 +12,9 @@ import { AdminTenantDto, FeatureFlagDto } from '../../shared/models/admin.models
   imports: [CommonModule, MatIconModule, MatSlideToggleModule],
   template: `
     <div class="max-w-5xl mx-auto px-8 py-10">
-      <h1 class="text-3xl font-display font-semibold text-zinc-900 mb-2">Feature flags</h1>
-      <p class="text-zinc-500 mb-8">
+      <div class="eyebrow mb-2">Switches</div>
+      <h1 class="text-5xl font-display text-ink mb-3">Feature flags</h1>
+      <p class="text-ink-muted mb-8">
         Switch features on or off for everyone, or override a single workspace. A workspace override always wins over the global setting.
       </p>
 
@@ -26,53 +27,53 @@ import { AdminTenantDto, FeatureFlagDto } from '../../shared/models/admin.models
 
       @if (loading()) {
         <div class="space-y-4">
-          @for (i of [1, 2, 3]; track i) { <div class="h-28 rounded-xl bg-zinc-100 animate-pulse"></div> }
+          @for (i of [1, 2, 3]; track i) { <div class="h-28 rounded-xl bg-sunken animate-pulse"></div> }
         </div>
       } @else {
         <div class="space-y-4">
           @for (f of flags(); track f.key) {
-            <section class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <section class="bg-panel rounded-xl border border-line overflow-hidden">
               <div class="p-5 flex items-start gap-4">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <h2 class="font-semibold text-zinc-900">{{ f.name }}</h2>
-                    <span class="font-mono text-xs text-zinc-400">{{ f.key }}</span>
+                    <h2 class="font-semibold text-ink">{{ f.name }}</h2>
+                    <span class="font-mono text-xs text-ink-faint">{{ f.key }}</span>
                   </div>
-                  <p class="text-sm text-zinc-500 mt-1">{{ f.description }}</p>
+                  <p class="text-sm text-ink-muted mt-1">{{ f.description }}</p>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
-                  <span class="text-xs" [class]="f.isEnabled ? 'text-accent-700' : 'text-zinc-400'">{{ f.isEnabled ? 'On for everyone' : 'Off globally' }}</span>
+                  <span class="text-xs" [class]="f.isEnabled ? 'text-accent-700' : 'text-ink-faint'">{{ f.isEnabled ? 'On for everyone' : 'Off globally' }}</span>
                   <mat-slide-toggle [checked]="f.isEnabled" [disabled]="busyKey() === f.key"
                                     [attr.aria-label]="'Turn ' + f.name + ' ' + (f.isEnabled ? 'off' : 'on') + ' globally'"
                                     (change)="setGlobal(f, $event.checked)" />
                 </div>
               </div>
 
-              <div class="border-t border-zinc-100 bg-zinc-50/60 px-5 py-3">
-                <div class="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-2">Workspace overrides</div>
+              <div class="border-t border-line bg-sunken/60 px-5 py-3">
+                <div class="text-xs font-medium uppercase tracking-wide text-ink-muted mb-2">Workspace overrides</div>
 
                 @for (o of f.overrides; track o.tenantId) {
                   <div class="flex items-center gap-3 py-1.5 text-sm">
-                    <span class="flex-1 text-zinc-800 truncate">{{ o.tenantName }}</span>
+                    <span class="flex-1 text-ink truncate">{{ o.tenantName }}</span>
                     <span class="text-xs px-2 py-0.5 rounded-full" [class]="o.isEnabled ? 'bg-accent-50 text-accent-700' : 'bg-red-50 text-red-700'">
                       Forced {{ o.isEnabled ? 'on' : 'off' }}
                     </span>
-                    <button class="text-xs text-zinc-500 hover:text-zinc-900" (click)="setOverride(f, o.tenantId, !o.isEnabled)">
+                    <button class="text-xs text-ink-muted hover:text-ink" (click)="setOverride(f, o.tenantId, !o.isEnabled)">
                       Switch {{ o.isEnabled ? 'off' : 'on' }}
                     </button>
-                    <button class="text-xs text-zinc-500 hover:text-red-600" (click)="setOverride(f, o.tenantId, null)">Remove</button>
+                    <button class="text-xs text-ink-muted hover:text-red-600" (click)="setOverride(f, o.tenantId, null)">Remove</button>
                   </div>
                 } @empty {
-                  <p class="text-sm text-zinc-400 py-1">None. Every workspace follows the global setting.</p>
+                  <p class="text-sm text-ink-faint py-1">None. Every workspace follows the global setting.</p>
                 }
 
                 <div class="flex items-center gap-2 mt-2">
-                  <select #tenant class="text-sm border border-zinc-200 rounded-md px-2 py-1.5 bg-white focus:border-admin-500 focus:outline-none max-w-[260px]"
+                  <select #tenant class="text-sm border border-line rounded-md px-2 py-1.5 bg-panel focus:border-admin-500 focus:outline-none max-w-[260px]"
                           aria-label="Workspace to override">
                     <option value="">Choose a workspace...</option>
                     @for (t of tenantsWithoutOverride(f); track t.id) { <option [value]="t.id">{{ t.name }}</option> }
                   </select>
-                  <button class="text-sm px-3 py-1.5 rounded-md border border-zinc-200 bg-white hover:bg-zinc-50 disabled:opacity-40"
+                  <button class="text-sm px-3 py-1.5 rounded-md border border-line bg-panel hover:bg-sunken disabled:opacity-40"
                           [disabled]="!tenant.value" (click)="addOverride(f, tenant, !f.isEnabled)">
                     Force {{ f.isEnabled ? 'off' : 'on' }}
                   </button>

@@ -1,7 +1,8 @@
 <div class="max-w-6xl mx-auto px-8 py-8">
   <div class="flex items-start justify-between gap-4 mb-8">
     <div>
-      <h1 class="text-3xl font-display font-semibold text-ink">Team</h1>
+      <div class="eyebrow mb-2">People</div>
+      <h1 class="text-5xl font-display text-ink">Team</h1>
       <p class="text-ink-muted mt-1">{{ members().length }} {{ members().length === 1 ? 'member' : 'members' }} in this workspace</p>
     </div>
     @if (canManage()) {
@@ -21,14 +22,14 @@
 
   <!-- Invite panel -->
   @if (inviteOpen() && canManage()) {
-    <div class="mb-6 bg-white rounded-xl border border-forge-200 p-5">
+    <div class="mb-6 bg-panel rounded-xl border border-forge-200 p-5">
       <h2 class="font-semibold text-ink mb-1">Invite a teammate</h2>
       <p class="text-sm text-ink-muted mb-4">They'll get an email with a link to join. You can also copy the link and send it yourself.</p>
       <form class="flex flex-col sm:flex-row gap-3" (ngSubmit)="sendInvite()">
         <input type="email" name="email" [(ngModel)]="inviteEmail" required placeholder="name@company.com"
                class="flex-1 text-sm border border-line rounded-lg px-3 py-2 focus:border-forge-400 focus:outline-none">
         <select name="role" [(ngModel)]="inviteRole"
-                class="text-sm border border-line rounded-lg px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
+                class="text-sm border border-line rounded-lg px-3 py-2 bg-panel focus:border-forge-400 focus:outline-none">
           @for (r of assignableRoles(); track r) { <option [value]="r">{{ r }}</option> }
         </select>
         <button mat-raised-button color="primary" type="submit" [disabled]="!inviteEmail.trim() || inviting()">
@@ -43,7 +44,7 @@
           </div>
           <div class="flex items-center gap-2">
             <input readonly [value]="inv.inviteUrl" (focus)="$any($event.target).select()"
-                   class="flex-1 min-w-0 text-xs font-mono bg-white border border-accent-200 rounded px-2 py-1.5 text-ink-soft">
+                   class="flex-1 min-w-0 text-xs font-mono bg-panel border border-accent-200 rounded px-2 py-1.5 text-ink-soft">
             <button mat-stroked-button (click)="copyLink(inv)">
               {{ copiedId() === inv.id ? 'Copied' : 'Copy link' }}
             </button>
@@ -54,14 +55,14 @@
   }
 
   <!-- Members -->
-  <div class="bg-white rounded-xl border border-line overflow-hidden">
+  <div class="bg-panel rounded-xl border border-line overflow-hidden">
     @if (loading()) {
       <div class="divide-y divide-line/60">
         @for (i of [1, 2, 3]; track i) {
           <div class="flex items-center gap-4 px-6 py-4">
-            <div class="w-10 h-10 rounded-full bg-zinc-200 animate-pulse"></div>
+            <div class="w-10 h-10 rounded-full bg-line animate-pulse"></div>
             <div class="flex-1 space-y-1.5">
-              <div class="h-3 w-40 rounded bg-zinc-200 animate-pulse"></div>
+              <div class="h-3 w-40 rounded bg-line animate-pulse"></div>
               <div class="h-2.5 w-56 rounded bg-sunken animate-pulse"></div>
             </div>
           </div>
@@ -83,7 +84,7 @@
             </div>
 
             @if (canManageMember(m)) {
-              <select class="text-xs border border-line rounded-md px-2 py-1 bg-white focus:border-forge-400 focus:outline-none"
+              <select class="text-xs border border-line rounded-md px-2 py-1 bg-panel focus:border-forge-400 focus:outline-none"
                       (change)="changeRole(m, $any($event.target))">
                 @for (r of assignableRoles(); track r) {
                   <option [value]="r" [selected]="r === m.role">{{ r }}</option>
@@ -117,10 +118,10 @@
   <!-- Pending invitations -->
   @if (canManage() && invitations().length > 0) {
     <h2 class="text-sm font-semibold text-ink mt-8 mb-3">Pending invitations</h2>
-    <div class="bg-white rounded-xl border border-line divide-y divide-line/60">
+    <div class="bg-panel rounded-xl border border-line divide-y divide-line/60">
       @for (inv of invitations(); track inv.id) {
         <div class="flex items-center gap-4 px-6 py-3">
-          <div class="w-9 h-9 rounded-full border-2 border-dashed border-zinc-300 flex items-center justify-center flex-shrink-0">
+          <div class="w-9 h-9 rounded-full border-2 border-dashed border-line-strong flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-base text-ink-faint">mail_outline</mat-icon>
           </div>
           <div class="flex-1 min-w-0">

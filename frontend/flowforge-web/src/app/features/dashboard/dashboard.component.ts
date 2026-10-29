@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { DashboardService } from '../../shared/services/dashboard.service';
 import { ProjectsService } from '../../shared/services/projects.service';
 import { DashboardStatsDto, MyTaskDto, ProjectSummaryDto } from '../../shared/models/project.models';
+import { AuthService } from '../../core/services/auth.service';
 import { CountUpDirective } from '../../shared/directives/count-up.directive';
 
 @Component({
@@ -17,6 +18,15 @@ import { CountUpDirective } from '../../shared/directives/count-up.directive';
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private projectsService  = inject(ProjectsService);
+  private auth = inject(AuthService);
+
+  /** Time of day greeting using the person's first name. */
+  greeting(): string {
+    const hour = new Date().getHours();
+    const part = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const name = this.auth.user()?.firstName;
+    return name ? `${part}, ${name}.` : `${part}.`;
+  }
 
   stats    = signal<DashboardStatsDto | null>(null);
   tasks    = signal<MyTaskDto[]>([]);
@@ -37,7 +47,7 @@ export class DashboardComponent implements OnInit {
       Critical: 'text-red-500', Highest: 'text-red-500',
       High: 'text-orange-500', Medium: 'text-yellow-500',
       Low: 'text-blue-400', Lowest: 'text-blue-400'
-    }[priority] ?? 'text-gray-400';
+    }[priority] ?? 'text-ink-faint';
   }
 
   priorityIcon(priority: string): string {

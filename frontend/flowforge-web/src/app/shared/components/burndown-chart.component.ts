@@ -72,8 +72,8 @@ export class BurndownChartComponent implements AfterViewInit, OnChanges, OnDestr
         {
           label: 'Remaining',
           data: this.data.points.map(p => p.remaining),
-          borderColor: '#6449E0',
-          backgroundColor: 'rgba(100, 73, 224, 0.12)',
+          borderColor: '#F2501C',
+          backgroundColor: 'rgba(242, 80, 28, 0.10)',
           fill: true,
           pointRadius: 3,
           borderWidth: 2,

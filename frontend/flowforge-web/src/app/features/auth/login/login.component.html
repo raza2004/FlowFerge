@@ -1,59 +1,25 @@
 <div class="min-h-screen flex flex-col lg:flex-row">
 
   <!-- Branded panel -->
-  <div class="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-forge-900 via-forge-800 to-forge-600 text-white p-12 flex-col justify-between relative overflow-hidden">
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-accent-500/10 blur-3xl"></div>
-    <div class="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-white/5 blur-3xl"></div>
-
-    <a routerLink="/" class="relative flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-          <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-          <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-        </svg>
-      </div>
-      <span class="font-display font-semibold text-lg">FlowForge</span>
-    </a>
-
-    <div class="relative">
-      <h2 class="font-display text-3xl font-semibold leading-tight mb-4">
-        Welcome back to your workspace
-      </h2>
-      <p class="text-forge-100 mb-8 max-w-sm">
-        Boards, automations, and AI, right where you left them.
-      </p>
-      <div class="space-y-3">
-        @for (item of ['Realtime boards that sync as your team works', 'AI powered task breakdown and summaries', 'Automations that notify the right person']; track item) {
-          <div class="flex items-start gap-2.5 text-sm text-forge-50">
-            <mat-icon class="!text-base !w-4 !h-4 mt-0.5 text-accent-300">check_circle</mat-icon>
-            <span>{{ item }}</span>
-          </div>
-        }
-      </div>
-    </div>
-
-    <p class="relative text-xs text-forge-200">© 2026 FlowForge</p>
+  <div class="hidden lg:block lg:w-[46%]">
+    <app-auth-brand-panel eyebrow="Welcome back" headline="Your board is" emphasis="where you left it." sub="Pick up the sprint, read the overnight changes, and keep shipping."></app-auth-brand-panel>
   </div>
 
+
   <!-- Form panel -->
-  <div class="flex-1 flex items-center justify-center p-4 sm:p-8 bg-white">
+  <div class="flex-1 flex items-center justify-center p-4 sm:p-8 bg-panel">
     <div class="w-full max-w-md">
 
       <!-- Logo (mobile only, branded panel is hidden below lg) -->
-      <div class="lg:hidden flex items-center gap-2 mb-8">
-        <div class="w-9 h-9 rounded-lg bg-forge-600 flex items-center justify-center">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-            <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-            <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-          </svg>
-        </div>
-        <span class="font-display font-semibold text-lg text-zinc-900">FlowForge</span>
+      <div class="lg:hidden flex items-baseline gap-1 mb-10">
+        <span class="font-display text-3xl leading-none">FlowForge</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-ember-500"></span>
       </div>
 
-      <h1 class="font-display text-2xl font-semibold text-zinc-900 mb-1">Sign in</h1>
-      <p class="text-zinc-500 mb-8">Enter your credentials to access your workspace</p>
+
+      <div class="eyebrow mb-3">Welcome back</div>
+      <h1 class="font-display text-5xl text-ink mb-2">Sign in</h1>
+      <p class="text-ink-muted mb-8">Enter your credentials to access your workspace</p>
 
       <!-- Error alert -->
       @if (authError()) {
@@ -68,7 +34,7 @@
             }
             @if (authError()!.field === 'email') {
               <a routerLink="/auth/register"
-                 class="inline-block mt-2 text-sm font-medium text-forge-600 hover:underline">
+                 class="inline-block mt-2 text-sm font-medium text-ember-600 hover:underline">
                 Create a new account →
               </a>
             }
@@ -126,9 +92,9 @@
         </button>
       </form>
 
-      <p class="text-center text-sm text-zinc-500 mt-6">
+      <p class="text-center text-sm text-ink-muted mt-6">
         Don't have an account?
-        <a routerLink="/auth/register" class="text-forge-600 hover:underline font-medium">
+        <a routerLink="/auth/register" class="text-ember-600 hover:underline font-medium">
           Sign up
         </a>
       </p>

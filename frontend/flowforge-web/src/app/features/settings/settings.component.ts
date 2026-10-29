@@ -14,11 +14,12 @@ import { SettingsService } from '../../shared/services/settings.service';
   imports: [CommonModule, FormsModule, MatSlideToggleModule, MatButtonModule, MatIconModule],
   template: `
     <div class="max-w-6xl mx-auto px-8 py-8">
-      <h1 class="text-3xl font-display font-semibold text-ink mb-2">Settings</h1>
+      <div class="eyebrow mb-2">Configuration</div>
+      <h1 class="text-5xl font-display text-ink">Settings</h1>
       <p class="text-ink-muted mb-8">Manage your workspace and account</p>
 
       <div class="max-w-3xl space-y-4">
-        <div class="bg-white rounded-xl border border-line p-6">
+        <div class="bg-panel rounded-xl border border-line p-6">
           <h2 class="font-display font-semibold text-ink mb-4">Workspace</h2>
           <div class="grid grid-cols-2 gap-4 text-sm mb-5">
             <div>
@@ -45,7 +46,7 @@ import { SettingsService } from '../../shared/services/settings.service';
             </p>
             <div class="flex items-center gap-2">
               <input type="text" [(ngModel)]="slackWebhookInput" placeholder="https://hooks.slack.com/services/…"
-                     class="flex-1 text-sm border border-zinc-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-forge-400">
+                     class="flex-1 text-sm border border-line-strong rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-forge-400">
               <button mat-stroked-button [disabled]="slackSaving()" (click)="saveSlackWebhook()">Save</button>
               @if (auth.tenant()?.slackWebhookUrl) {
                 <button mat-icon-button matTooltip="Remove" [disabled]="slackSaving()" (click)="clearSlackWebhook()">
@@ -58,7 +59,7 @@ import { SettingsService } from '../../shared/services/settings.service';
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-line p-6">
+        <div class="bg-panel rounded-xl border border-line p-6">
           <h2 class="font-display font-semibold text-ink mb-4">Account</h2>
           <div class="grid grid-cols-2 gap-4 text-sm mb-5">
             <div>

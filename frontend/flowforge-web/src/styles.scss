@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,49 +6,131 @@
 
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 
-// Re-point Material's default azure/blue palette at the FlowForge violet so buttons, toggles,
-// focus rings and chips match the rest of the UI.
+// ---------------------------------------------------------------------------------------------
+// "Ember Editorial" design tokens. Warm paper surfaces, ink black actions, one ember accent.
+// Re-points Material's default azure palette so every dialog, menu, toggle and field matches.
+// ---------------------------------------------------------------------------------------------
 :root {
-  --mat-sys-primary: #6449E0;
-  --mat-sys-on-primary: #ffffff;
-  --mat-sys-primary-container: #EFEAFD;
-  --mat-sys-on-primary-container: #2B1C7A;
-  --mat-sys-surface-tint: #6449E0;
-  --mat-sys-secondary-container: #EFEAFD;
-  --mat-sys-on-secondary-container: #2B1C7A;
+  --ff-canvas: #EFEBE3;
+  --ff-panel: #FAF8F3;
+  --ff-sunken: #E6E1D6;
+  --ff-line: #DAD4C7;
+  --ff-ink: #17140F;
+  --ff-muted: #6A6256;
+  --ff-ember: #F2501C;
+  --ff-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* One button shape everywhere (Material defaults outlined buttons to pills). */
-  --mat-button-filled-container-shape: 8px;
-  --mat-button-outlined-container-shape: 8px;
-  --mat-button-text-container-shape: 8px;
-  --mat-button-tonal-container-shape: 8px;
-  --mat-button-protected-container-shape: 8px;
+  --mat-sys-primary: #17140F;
+  --mat-sys-on-primary: #F6F2E9;
+  --mat-sys-primary-container: #FFE3D5;
+  --mat-sys-on-primary-container: #5E1C0C;
+  --mat-sys-secondary: #6A6256;
+  --mat-sys-secondary-container: #FFE3D5;
+  --mat-sys-on-secondary-container: #5E1C0C;
+  --mat-sys-surface-tint: #F2501C;
+  --mat-sys-surface: #FAF8F3;
+  --mat-sys-surface-container: #F2EEE5;
+  --mat-sys-surface-container-high: #F2EEE5;
+  --mat-sys-surface-container-highest: #E6E1D6;
+  --mat-sys-on-surface: #17140F;
+  --mat-sys-on-surface-variant: #6A6256;
+  --mat-sys-outline: #C6BFAE;
+  --mat-sys-outline-variant: #DAD4C7;
+  --mat-sys-error: #B42318;
+
+  /* Material components use the UI face, not Roboto. */
+  --mat-sys-display-large-font: Geist, system-ui, sans-serif;
+  --mat-sys-display-medium-font: Geist, system-ui, sans-serif;
+  --mat-sys-display-small-font: Geist, system-ui, sans-serif;
+  --mat-sys-headline-large-font: Geist, system-ui, sans-serif;
+  --mat-sys-headline-medium-font: Geist, system-ui, sans-serif;
+  --mat-sys-headline-small-font: Geist, system-ui, sans-serif;
+  --mat-sys-title-large-font: Geist, system-ui, sans-serif;
+  --mat-sys-title-medium-font: Geist, system-ui, sans-serif;
+  --mat-sys-title-small-font: Geist, system-ui, sans-serif;
+  --mat-sys-body-large-font: Geist, system-ui, sans-serif;
+  --mat-sys-body-medium-font: Geist, system-ui, sans-serif;
+  --mat-sys-body-small-font: Geist, system-ui, sans-serif;
+  --mat-sys-label-large-font: Geist, system-ui, sans-serif;
+  --mat-sys-label-medium-font: Geist, system-ui, sans-serif;
+  --mat-sys-label-small-font: Geist, system-ui, sans-serif;
+  --mat-sys-brand-font: Geist, system-ui, sans-serif;
+  --mat-sys-plain-font: Geist, system-ui, sans-serif;
+
+
+  /* One button shape everywhere. Sharp, small radius: editorial, not pill. */
+  --mat-button-filled-container-shape: 6px;
+  --mat-button-outlined-container-shape: 6px;
+  --mat-button-text-container-shape: 6px;
+  --mat-button-tonal-container-shape: 6px;
+  --mat-button-protected-container-shape: 6px;
+  --mat-dialog-container-shape: 14px;
+  --mat-dialog-container-color: #FAF8F3;
+  --mat-menu-container-shape: 10px;
+  --mat-menu-container-color: #FAF8F3;
+  --mat-form-field-container-height: 48px;
+  --mat-slide-toggle-selected-track-color: #17140F;
+  --mat-slide-toggle-selected-handle-color: #FAF8F3;
+  --mat-slide-toggle-selected-hover-track-color: #17140F;
+  --mat-slide-toggle-selected-focus-track-color: #17140F;
+  --mat-slide-toggle-selected-pressed-track-color: #17140F;
 }
 
 html, body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #F3F2F9;
-  color: #25223A;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  background: var(--ff-canvas);
+  color: var(--ff-ink);
   margin: 0;
   height: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 
-// Slim, tinted scrollbars so scrolling areas (board columns, lists) match the surfaces.
+::selection { background: var(--ff-ember); color: #fff; }
+
+:focus-visible { outline: 2px solid var(--ff-ember); outline-offset: 2px; }
+
+// Paper grain: a barely visible noise layer over everything gives flat surfaces some tooth.
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+// Slim, warm scrollbars so scrolling areas match the surfaces.
 * {
   scrollbar-width: thin;
-  scrollbar-color: #D2CFE3 transparent;
+  scrollbar-color: #C6BFAE transparent;
 }
 
-h1, h2, h3, .display {
-  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  letter-spacing: -0.02em;
+h1, .display, .font-display {
+  font-family: 'Instrument Serif', Georgia, serif;
+  letter-spacing: -0.015em;
+  // The serif ships one weight; without this the browser fakes a bold that looks smeared.
+  font-synthesis: none;
 }
+
+h1 { font-weight: 400; line-height: 1.05; }
+h2, h3 { letter-spacing: -0.01em; }
 
 .font-mono, code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', ui-monospace, monospace;
 }
 
-// Material overrides for tighter, more modern feel
+// Small mono label above headings and sections.
+.eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ff-muted);
+}
+
 // Icons sized with Tailwind (!w-5 !h-5 !text-lg) keep Material's 24px line-height, which pushes the
 // glyph several pixels below the text it sits next to. Centre the glyph in its own box instead.
 .mat-icon {
@@ -60,8 +140,7 @@ h1, h2, h3, .display {
   line-height: 1 !important;
 }
 
-// Shared "back" link used at the top of detail pages. The icon is a fixed 16px box
-// so the arrow sits on the text baseline instead of floating above or left of it.
+// Shared "back" link used at the top of detail pages.
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -70,67 +149,80 @@ h1, h2, h3, .display {
   margin-bottom: 12px;
   padding: 4px 10px 4px 6px;
   margin-left: -6px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1;
-  color: #6b6785;
-  transition: background-color 0.15s, color 0.15s;
+  color: var(--ff-muted);
+  transition: background-color 0.2s var(--ff-ease), color 0.2s var(--ff-ease);
 
   .mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    line-height: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    line-height: 14px;
     flex-shrink: 0;
   }
 
   &:hover {
-    background: rgba(100, 73, 224, 0.08);
-    color: #4b34b8;
+    background: rgba(242, 80, 28, 0.1);
+    color: #B3320C;
   }
 }
 
 .mat-mdc-card {
-  border-radius: 12px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03) !important;
-  border: 1px solid #E4E4E7;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--ff-line);
 }
 
-.mat-mdc-raised-button.mat-primary {
-  background: #6449E0 !important;
-  color: white !important;
-  border-radius: 8px !important;
+// Primary action = ink. Ember is kept for accents and active states, so it still means something.
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  background: var(--ff-ink) !important;
+  color: #F6F2E9 !important;
+  border-radius: 6px !important;
+  letter-spacing: 0.01em;
+  transition: background-color 0.2s var(--ff-ease), transform 0.2s var(--ff-ease);
 }
 
-.mat-mdc-raised-button.mat-primary:hover {
-  background: #5238C4 !important;
+.mat-mdc-raised-button.mat-primary:hover,
+.mat-mdc-unelevated-button.mat-primary:hover {
+  background: var(--ff-ember) !important;
+  color: #fff !important;
 }
 
-.mat-mdc-button.mat-primary {
-  color: #6449E0 !important;
-}
+.mat-mdc-button.mat-primary { color: var(--ff-ink) !important; }
+
+.mat-mdc-outlined-button { border-color: var(--ff-ink) !important; }
 
 // Retriggered on every route change to fade the new page in
-.route-fade-play {
-  animation: route-fade-in 0.25s ease-out;
-}
+.route-fade-play { animation: route-fade-in 0.4s var(--ff-ease); }
 
 @keyframes route-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+// Buttons never wrap their label onto two lines ("New task" on narrow screens).
+.mat-mdc-button-base { white-space: nowrap; }
+
 @media (prefers-reduced-motion: reduce) {
-  .route-fade-play {
-    animation: none;
-  }
+  .route-fade-play { animation: none; }
+  * { scroll-behavior: auto !important; }
 }
 
-// Buttons never wrap their label onto two lines ("New task" on narrow screens).
-.mat-mdc-button-base {
-  white-space: nowrap;
+// The active sidebar row tints its icon ember; inactive icons stay quiet.
+.active-nav .nav-icon { color: var(--ff-ember); }
+
+// Typing caret for streamed answers, and an indeterminate bar for work with no known length.
+.caret {
+  display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: text-bottom;
+  background: var(--ff-ember); animation: caret-blink 1s steps(2) infinite;
 }
+@keyframes caret-blink { 50% { opacity: 0; } }
+.indeterminate { animation: indeterminate 1.4s var(--ff-ease) infinite; }
+@keyframes indeterminate { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+@media (prefers-reduced-motion: reduce) { .caret, .indeterminate { animation: none; } }

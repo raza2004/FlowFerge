@@ -36,7 +36,10 @@ app.include_router(documents.router)
 
 @app.exception_handler(LlmUnavailable)
 async def llm_unavailable(_request: Request, ex: LlmUnavailable) -> JSONResponse:
-    # 503 tells the .NET client "try later"; its circuit breaker counts these.
+    # 429 = the provider is rate limiting us (retrying right away only makes it worse);
+    # 503 = it is down or broken. The .NET client treats the two differently.
+    if ex.rate_limited:
+        return JSONResponse(status_code=429, content={"detail": "The AI model is busy right now."}, headers={"Retry-After": "30"})
     return JSONResponse(status_code=503, content={"detail": "The AI model is unavailable right now."})
 
 

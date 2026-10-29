@@ -31,6 +31,7 @@ public static class ResultExtensions
                 ErrorType.Unauthorized => 401,
                 ErrorType.Forbidden => 403,
                 ErrorType.TooManyRequests => 429,
+                ErrorType.ServiceUnavailable => 503,
                 _ => 500
             }
         };

@@ -17,24 +17,19 @@ import { environment } from '../../../environments/environment';
     CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule
   ],
   template: `
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div class="w-full max-w-sm">
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center gap-2 mb-4">
-            <div class="w-10 h-10 bg-admin-900 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-                <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-                <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-              </svg>
-            </div>
-            <span class="text-2xl font-bold text-gray-900">FlowForge Admin</span>
+    <div class="min-h-screen bg-sunken flex items-center justify-center p-4">
+      <div class="w-full max-w-md">
+        <div class="mb-8">
+          <div class="flex items-baseline gap-1">
+            <span class="font-display text-4xl leading-none">FlowForge</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-ember-500"></span>
           </div>
-          <h1 class="text-xl font-semibold text-gray-900">System administration</h1>
-          <p class="text-gray-500 mt-1 text-sm">Sign in with a system admin account</p>
+          <div class="mt-3 inline-flex font-mono text-[10px] uppercase tracking-[0.18em] text-ember-600 border border-ember-500/50 rounded-sm px-2 py-0.5">Admin console</div>
+          <h1 class="font-display text-5xl text-ink mt-8 leading-none">System administration</h1>
+          <p class="text-ink-muted mt-3 text-sm">Sign in with a system admin account</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div class="bg-panel rounded-xl border border-line-strong p-8">
           @if (error()) {
             <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {{ error() }}
@@ -57,7 +52,7 @@ import { environment } from '../../../environments/environment';
             </button>
           </form>
 
-          <p class="text-center text-xs text-gray-500 mt-6 leading-relaxed">
+          <p class="text-center text-xs text-ink-muted mt-6 leading-relaxed">
             There's no signup here. This app is for admins only.
             The very first account ever registered in FlowForge automatically becomes a
             system admin. If that's not you yet,

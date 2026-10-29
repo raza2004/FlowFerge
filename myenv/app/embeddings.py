@@ -13,7 +13,9 @@ def make_client() -> OpenAI:
     settings = get_settings()
     if not settings.openai_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and fill it in.")
-    return OpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url or None)
+    # max_retries=0: the SDK would silently retry 429s itself and multiply load on a provider that is
+    # already rate limiting us. We do our own, visible fallback across models instead (see llm.py).
+    return OpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url or None, max_retries=0)
 
 
 class OpenAIEmbedder:

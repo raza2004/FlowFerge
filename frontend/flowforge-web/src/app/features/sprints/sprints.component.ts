@@ -110,7 +110,7 @@ export interface CompleteSprintDialogData {
               Move the {{ data.unfinished }} unfinished task(s) to
             </span>
             <select [(ngModel)]="destination"
-                    class="mt-1 w-full border border-line rounded-md px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
+                    class="mt-1 w-full border border-line rounded-md px-3 py-2 bg-panel focus:border-forge-400 focus:outline-none">
               <option [ngValue]="null">Backlog</option>
               @for (s of data.plannedSprints; track s.id) { <option [ngValue]="s.id">{{ s.name }}</option> }
             </select>

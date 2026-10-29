@@ -1,30 +1,24 @@
-<div class="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
+<div class="min-h-screen bg-canvas flex items-center justify-center p-4">
   <div class="w-full max-w-md">
-    <a routerLink="/" class="flex items-center justify-center gap-2 mb-8">
-      <div class="w-9 h-9 rounded-lg bg-forge-600 flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="white" fill-opacity="0.55"/>
-          <rect x="9.75" y="8" width="4.5" height="13" rx="1.5" fill="white" fill-opacity="0.8"/>
-          <rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="white"/>
-        </svg>
-      </div>
-      <span class="font-display font-semibold text-lg text-zinc-900">FlowForge</span>
+    <a routerLink="/" class="flex items-baseline justify-center gap-1 mb-8">
+      <span class="font-display text-4xl leading-none">FlowForge</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-ember-500"></span>
     </a>
 
-    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm p-8">
+    <div class="bg-panel rounded-xl border border-line-strong p-8">
       @if (loading()) {
         <div class="space-y-3">
-          <div class="h-5 w-2/3 mx-auto rounded bg-zinc-200 animate-pulse"></div>
-          <div class="h-3 w-1/2 mx-auto rounded bg-zinc-100 animate-pulse"></div>
+          <div class="h-5 w-2/3 mx-auto rounded bg-sunken animate-pulse"></div>
+          <div class="h-3 w-1/2 mx-auto rounded bg-line animate-pulse"></div>
         </div>
       } @else if (preview(); as p) {
         @if (p.status !== 'pending') {
           <div class="text-center">
-            <mat-icon class="!text-4xl !w-10 !h-10 text-zinc-300">link_off</mat-icon>
-            <h1 class="font-display text-xl font-semibold text-zinc-900 mt-2">
+            <mat-icon class="!text-4xl !w-10 !h-10 text-ink-faint">link_off</mat-icon>
+            <h1 class="font-display text-4xl text-ink leading-none mt-2">
               {{ p.status === 'accepted' ? 'Invitation already used' : p.status === 'expired' ? 'Invitation expired' : 'Invitation revoked' }}
             </h1>
-            <p class="text-sm text-zinc-500 mt-2">
+            <p class="text-sm text-ink-muted mt-2">
               @if (p.status === 'accepted') {
                 This invitation has already been accepted. Sign in to get to {{ p.tenantName }}.
               } @else {
@@ -38,9 +32,9 @@
             <div class="inline-flex w-12 h-12 rounded-full bg-forge-50 items-center justify-center mb-3">
               <mat-icon class="text-forge-600">group_add</mat-icon>
             </div>
-            <h1 class="font-display text-xl font-semibold text-zinc-900">Join {{ p.tenantName }}</h1>
-            <p class="text-sm text-zinc-500 mt-1">
-              {{ p.invitedByName }} invited <strong class="text-zinc-700">{{ p.email }}</strong> to join as a {{ p.role }}.
+            <h1 class="font-display text-4xl text-ink leading-none">Join {{ p.tenantName }}</h1>
+            <p class="text-sm text-ink-muted mt-1">
+              {{ p.invitedByName }} invited <strong class="text-ink-soft">{{ p.email }}</strong> to join as a {{ p.role }}.
             </p>
           </div>
 
@@ -61,7 +55,7 @@
               <button mat-stroked-button class="w-full" (click)="switchAccount()">Use a different account</button>
             }
           } @else if (p.accountExists) {
-            <p class="text-sm text-zinc-600 text-center mb-4">You already have a FlowForge account. Sign in to accept.</p>
+            <p class="text-sm text-ink-soft text-center mb-4">You already have a FlowForge account. Sign in to accept.</p>
             <button mat-raised-button color="primary" class="w-full !py-3" (click)="signInToAccept()">Sign in to accept</button>
           } @else {
             <form [formGroup]="form" (ngSubmit)="register()" class="space-y-1">
@@ -97,8 +91,8 @@
         }
       } @else {
         <div class="text-center">
-          <mat-icon class="!text-4xl !w-10 !h-10 text-zinc-300">link_off</mat-icon>
-          <p class="text-sm text-zinc-600 mt-2">{{ error() }}</p>
+          <mat-icon class="!text-4xl !w-10 !h-10 text-ink-faint">link_off</mat-icon>
+          <p class="text-sm text-ink-soft mt-2">{{ error() }}</p>
           <a mat-button class="mt-4" routerLink="/">Back to FlowForge</a>
         </div>
       }

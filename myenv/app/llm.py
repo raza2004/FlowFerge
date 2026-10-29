@@ -38,7 +38,11 @@ class ChatResult:
 
 
 class LlmUnavailable(RuntimeError):
-    """No configured model could answer."""
+    """No configured model could answer. rate_limited is True when the cause was 429s."""
+
+    def __init__(self, message: str, rate_limited: bool = False):
+        super().__init__(message)
+        self.rate_limited = rate_limited
 
 
 class Llm(Protocol):
@@ -58,6 +62,7 @@ class OpenAiLlm:
     def complete(self, messages: list[dict], tools: list[dict] | None = None, model: str | None = None) -> ChatResult:
         client = make_client()
         last_error: Exception | None = None
+        limited = False
         for name in _model_chain(model):
             try:
                 kwargs: dict[str, Any] = {"model": name, "messages": messages, "temperature": 0}
@@ -66,6 +71,7 @@ class OpenAiLlm:
                 response = client.chat.completions.create(**kwargs)
             except openai.APIStatusError as ex:
                 last_error = ex
+                limited = limited or ex.status_code == 429
                 if ex.status_code in _RETRYABLE:
                     continue
                 raise
@@ -86,12 +92,13 @@ class OpenAiLlm:
             if not (choice.content or calls):
                 continue  # empty answer, try the next model
             return ChatResult(content=choice.content or "", tool_calls=calls, usage=usage)
-        raise LlmUnavailable(f"No AI model could answer: {last_error}")
+        raise LlmUnavailable(f"No AI model could answer: {last_error}", rate_limited=limited)
 
     def stream(self, messages: list[dict]) -> Iterator[str | Usage]:
         """Yields text deltas, then one Usage object at the end."""
         client = make_client()
         last_error: Exception | None = None
+        limited = False
         for name in _model_chain():
             produced = False
             try:
@@ -115,10 +122,11 @@ class OpenAiLlm:
                     return
             except (openai.APIStatusError, openai.APIConnectionError) as ex:
                 last_error = ex
+                limited = limited or getattr(ex, "status_code", None) == 429
                 if produced:  # half an answer was already sent, cannot switch models now
                     raise
                 continue
-        raise LlmUnavailable(f"No AI model could answer: {last_error}")
+        raise LlmUnavailable(f"No AI model could answer: {last_error}", rate_limited=limited)
 
 
 _llm: Llm | None = None

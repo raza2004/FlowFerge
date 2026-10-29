@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BoardListDto, ListSettings } from '../../../shared/models/project.models';
 
-const LIST_COLORS = ['#94a3b8', '#3b82f6', '#6449E0', '#F59E0B', '#EC4899', '#0EA5E9', '#10b981', '#E5484D'];
+const LIST_COLORS = ['#94a3b8', '#3b82f6', '#F2501C', '#F59E0B', '#EC4899', '#0EA5E9', '#10b981', '#E5484D'];
 
 export interface ListSettingsDialogData {
   /** Absent when creating a new list. */
@@ -101,7 +101,7 @@ export interface DeleteListDialogData {
         @if (data.list.tasks.length > 0) {
           <p>This list has {{ data.list.tasks.length }} task(s). Move them to:</p>
           <select [(ngModel)]="targetId"
-                  class="w-full border border-line rounded-md px-3 py-2 bg-white focus:border-forge-400 focus:outline-none">
+                  class="w-full border border-line rounded-md px-3 py-2 bg-panel focus:border-forge-400 focus:outline-none">
             @for (l of data.otherLists; track l.id) { <option [value]="l.id">{{ l.name }}</option> }
           </select>
         } @else {

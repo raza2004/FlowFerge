@@ -1,28 +1,29 @@
 <div class="max-w-6xl mx-auto px-8 py-8">
 
   <!-- Header -->
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold font-display text-ink">Dashboard</h1>
-    <p class="text-sm text-ink-muted mt-1">Here's what's happening across your workspace.</p>
+  <div class="mb-10">
+    <div class="eyebrow mb-3">Overview</div>
+    <h1 class="text-5xl md:text-7xl font-display text-ink">{{ greeting() }}</h1>
+    <p class="text-ink-muted mt-4 max-w-xl">Here is where your workspace stands today.</p>
   </div>
 
-  <!-- Stats grid -->
+  <!-- Numbers: a ruled strip, not a row of cards -->
   @if (stats()) {
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      <div class="stat-card bg-white border border-line rounded-xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-        <div class="text-xs text-ink-muted font-medium uppercase tracking-wide mb-1">Total Projects</div>
-        <div class="text-3xl font-bold text-ink" [appCountUp]="stats()!.totalProjects"></div>
-        <div class="text-xs text-ink-faint mt-1">{{ stats()!.activeProjects }} active</div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 border-y border-ink mb-12">
+      <div class="py-6 sm:pr-8 sm:border-r border-line-strong">
+        <div class="eyebrow mb-3">Projects</div>
+        <div class="font-display text-7xl leading-none text-ink" [appCountUp]="stats()!.totalProjects"></div>
+        <div class="font-mono text-[11px] text-ink-muted mt-3">{{ stats()!.activeProjects }} active</div>
       </div>
-      <div class="stat-card bg-white border border-line rounded-xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-        <div class="text-xs text-ink-muted font-medium uppercase tracking-wide mb-1">My Open Tasks</div>
-        <div class="text-3xl font-bold text-ink" [appCountUp]="stats()!.myOpenTasks"></div>
-        <div class="text-xs text-red-500 mt-1">{{ stats()!.myOverdueTasks }} overdue</div>
+      <div class="py-6 sm:px-8 sm:border-r border-line-strong border-t sm:border-t-0">
+        <div class="eyebrow mb-3">Open tasks, yours</div>
+        <div class="font-display text-7xl leading-none text-ink" [appCountUp]="stats()!.myOpenTasks"></div>
+        <div class="font-mono text-[11px] mt-3" [class]="stats()!.myOverdueTasks > 0 ? 'text-tone-crit-fg' : 'text-ink-muted'">{{ stats()!.myOverdueTasks }} overdue</div>
       </div>
-      <div class="stat-card bg-white border border-line rounded-xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-        <div class="text-xs text-ink-muted font-medium uppercase tracking-wide mb-1">Due This Week</div>
-        <div class="text-3xl font-bold text-ink" [appCountUp]="stats()!.tasksDueThisWeek"></div>
-        <div class="text-xs text-green-600 mt-1">{{ stats()!.completedThisWeek }} completed</div>
+      <div class="py-6 sm:pl-8 border-t sm:border-t-0 border-line-strong">
+        <div class="eyebrow mb-3">Due this week</div>
+        <div class="font-display text-7xl leading-none text-ink" [appCountUp]="stats()!.tasksDueThisWeek"></div>
+        <div class="font-mono text-[11px] text-tone-ok-fg mt-3">{{ stats()!.completedThisWeek }} completed</div>
       </div>
     </div>
   }
@@ -30,7 +31,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     <!-- My tasks -->
-    <div class="lg:col-span-2 bg-white border border-line rounded-xl">
+    <div class="lg:col-span-2 bg-panel border border-line rounded-xl">
       <div class="px-5 py-4 border-b border-line/60 flex items-center justify-between">
         <h2 class="font-semibold text-ink">My Tasks</h2>
         <a routerLink="/my-work" class="text-xs text-forge-600 hover:underline">View all</a>
@@ -68,7 +69,7 @@
     </div>
 
     <!-- Projects sidebar -->
-    <div class="bg-white border border-line rounded-xl">
+    <div class="bg-panel border border-line rounded-xl">
       <div class="px-5 py-4 border-b border-line/60 flex items-center justify-between">
         <h2 class="font-semibold text-ink">Projects</h2>
         <a routerLink="/projects" class="text-xs text-forge-600 hover:underline">All projects</a>
@@ -77,9 +78,9 @@
         <ul class="divide-y divide-line/60">
           @for (i of [1,2,3,4]; track i) {
             <li class="flex items-center gap-3 px-5 py-3">
-              <div class="w-7 h-7 rounded-md bg-zinc-200 animate-pulse flex-shrink-0"></div>
+              <div class="w-7 h-7 rounded-md bg-line animate-pulse flex-shrink-0"></div>
               <div class="flex-1 min-w-0 space-y-1.5">
-                <div class="h-3 w-2/3 rounded bg-zinc-200 animate-pulse"></div>
+                <div class="h-3 w-2/3 rounded bg-line animate-pulse"></div>
                 <div class="h-2.5 w-1/3 rounded bg-sunken animate-pulse"></div>
               </div>
             </li>

@@ -108,3 +108,6 @@ coverage.cobertura.xml
 *.apikey
 *api-keys*
 *secret*
+
+# Personal study notes, not part of the project
+docs/PROJECT_GUIDE.md

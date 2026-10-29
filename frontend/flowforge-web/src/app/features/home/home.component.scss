@@ -1,94 +1,134 @@
-// Aurora blobs drifting behind the hero copy
-.aurora-blob {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.5;
+:host { display: block; }
+
+// ---- Buttons --------------------------------------------------------------------------------
+.btn-ink, .btn-line {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 500; letter-spacing: 0.01em;
+  padding: 10px 20px; border-radius: 6px;
+  transition: background-color 0.25s var(--ff-ease), color 0.25s var(--ff-ease), border-color 0.25s var(--ff-ease);
   will-change: transform;
 }
+.btn-ink { background: var(--ff-ink); color: #F6F2E9; border: 1px solid var(--ff-ink); }
+.btn-ink:hover { background: var(--ff-ember); border-color: var(--ff-ember); color: #fff; }
+.btn-line { border: 1px solid var(--ff-ink); color: var(--ff-ink); }
+.btn-line:hover { background: var(--ff-ink); color: #F6F2E9; }
+.btn-lg { padding: 16px 28px; font-size: 15px; }
 
-.aurora-blob--one {
-  top: -10%;
-  left: 10%;
-  width: 26rem;
-  height: 26rem;
-  background: radial-gradient(circle, #C4B5FD 0%, transparent 70%);
-  animation: drift-one 16s ease-in-out infinite;
+// ---- Nav ------------------------------------------------------------------------------------
+.nav { background: transparent; }
+.nav-solid {
+  background: rgba(239, 235, 227, 0.95);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid var(--ff-line);
 }
-
-.aurora-blob--two {
-  top: 0;
-  right: 5%;
-  width: 22rem;
-  height: 22rem;
-  background: radial-gradient(circle, #6EE7BE 0%, transparent 70%);
-  animation: drift-two 20s ease-in-out infinite;
-}
-
-.aurora-blob--three {
-  bottom: -20%;
-  left: 35%;
-  width: 20rem;
-  height: 20rem;
-  background: radial-gradient(circle, #DDD6FE 0%, transparent 70%);
-  animation: drift-three 18s ease-in-out infinite;
-}
-
-@keyframes drift-one {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(3rem, 2rem) scale(1.1); }
-}
-
-@keyframes drift-two {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-2.5rem, 3rem) scale(0.95); }
-}
-
-@keyframes drift-three {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(2rem, -2rem) scale(1.08); }
-}
-
-// Underline sweep for the top nav links
-.nav-link {
+.link-u {
   position: relative;
-
   &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 100%;
-    height: 2px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 0.25s ease-out;
+    content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px;
+    background: currentColor; transform: scaleX(0); transform-origin: right;
+    transition: transform 0.35s var(--ff-ease);
   }
-
-  &:hover::after {
-    transform: scaleX(1);
-    transform-origin: left;
-  }
+  &:hover::after { transform: scaleX(1); transform-origin: left; }
 }
 
-// Accordion-style height transition without measuring pixels
-.faq-panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease-out;
-
-  &.faq-panel--open {
-    grid-template-rows: 1fr;
-  }
-
-  > div {
-    overflow: hidden;
-  }
+// ---- Hero -----------------------------------------------------------------------------------
+.hero-title {
+  font-size: clamp(3.6rem, 12.2vw, 11.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+  font-weight: 400;
+  em { font-style: italic; }
 }
+.line { display: block; overflow: hidden; padding: 0.04em 0 0.1em; margin-bottom: -0.1em; }
+.line-in { display: inline-block; will-change: transform; }
+
+.marquee { overflow: hidden; white-space: nowrap; }
+.marquee-track { display: inline-flex; animation: marquee 38s linear infinite; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+.big-track { display: inline-block; will-change: transform; }
+
+// ---- Cursor ---------------------------------------------------------------------------------
+.cursor-dot {
+  position: fixed; left: -10px; top: -10px; width: 20px; height: 20px; z-index: 9998;
+  border: 1.5px solid var(--ff-ember); border-radius: 50%;
+  pointer-events: none; opacity: 0;
+  transition: width 0.3s var(--ff-ease), height 0.3s var(--ff-ease), margin 0.3s var(--ff-ease), background-color 0.3s var(--ff-ease), opacity 0.3s;
+}
+.cursor-hot { width: 54px; height: 54px; margin: -17px 0 0 -17px; background: rgba(242, 80, 28, 0.14); }
+
+// ---- Scene (the board) ----------------------------------------------------------------------
+.scene { --ch: 58px; --cg: 10px; }
+@media (min-width: 768px) { .scene { --ch: 66px; --cg: 12px; } }
+
+.slots { min-height: calc(4 * (var(--ch) + var(--cg))); }
+.slot-card { height: var(--ch); margin-bottom: var(--cg); will-change: transform; }
+.mini-card {
+  position: relative; height: 100%; padding: 9px 10px 8px 14px;
+  background: rgba(246, 242, 233, 0.07);
+  border: 1px solid rgba(246, 242, 233, 0.16);
+  border-radius: 6px; overflow: hidden;
+  .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+}
+
+// ---- Rail panels ----------------------------------------------------------------------------
+.panel {
+  flex: 0 0 min(84vw, 31rem);
+  min-height: 25rem;
+  display: flex; flex-direction: column;
+  padding: 1.75rem;
+  border: 1px solid var(--ff-line-strong, #C6BFAE);
+  border-radius: 14px;
+  background: var(--ff-panel);
+  transition: transform 0.5s var(--ff-ease), border-color 0.3s;
+  &:hover { transform: translateY(-6px); border-color: var(--ff-ink); }
+}
+.panel-title {
+  font-family: 'Instrument Serif', Georgia, serif; font-synthesis: none;
+  font-size: clamp(1.7rem, 2.6vw, 2.25rem); line-height: 1.05; letter-spacing: -0.015em;
+  margin-top: 0.9rem;
+}
+.panel-visual {
+  position: relative; margin-top: auto; padding-top: 1.75rem;
+  display: flex; align-items: center; min-height: 10.5rem;
+}
+.vc {
+  font-size: 12px; padding: 10px 12px; border: 1px solid var(--ff-line);
+  border-left: 3px solid var(--ff-ember); border-radius: 6px; background: #fff;
+}
+.vc-slide { animation: vslide 4.5s var(--ff-ease) infinite; }
+.vc-ghost { border-style: dashed; border-left-style: dashed; color: var(--ff-muted); background: transparent; border-left-color: var(--ff-line); }
+@keyframes vslide {
+  0%, 15% { transform: translate(0, 0); }
+  45%, 70% { transform: translate(calc(100% + 12px), 44px); }
+  100% { transform: translate(0, 0); }
+}
+.who {
+  position: absolute; right: 0; bottom: 0;
+  font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--ff-ink); color: #F6F2E9; padding: 5px 9px; border-radius: 4px;
+  animation: whopulse 4.5s ease infinite;
+}
+@keyframes whopulse { 0%, 30% { opacity: 0; transform: translateY(6px); } 45%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+.burn { stroke-dasharray: 420; stroke-dashoffset: 420; animation: draw 4.5s var(--ff-ease) infinite; }
+@keyframes draw { 0% { stroke-dashoffset: 420; } 55%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0.2; } }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; padding: 8px 14px; border: 1px solid var(--ff-ink); border-radius: 999px; background: transparent;
+}
+.chip-ember { background: var(--ff-ember); border-color: var(--ff-ember); color: #fff; }
+
+// ---- Assistant ------------------------------------------------------------------------------
+.caret {
+  display: inline-block; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: text-bottom;
+  background: var(--ff-ember); animation: blink 1s steps(2) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-blob {
-    animation: none;
-  }
+  .marquee-track, .vc-slide, .who, .burn, .caret { animation: none; }
+  .burn { stroke-dashoffset: 0; }
+  .who { opacity: 1; }
 }

@@ -32,7 +32,7 @@ interface CommentSegment {
   mention: boolean;
 }
 
-const LABEL_COLORS = ['#6449E0', '#0EA97C', '#E5484D', '#F59E0B', '#0EA5E9', '#EC4899', '#71717A'];
+const LABEL_COLORS = ['#F2501C', '#0EA97C', '#E5484D', '#F59E0B', '#0EA5E9', '#EC4899', '#71717A'];
 
 @Component({
   selector: 'app-task-detail-dialog',

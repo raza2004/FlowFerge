@@ -13,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
   template: `
     <h2 mat-dialog-title>Suspend workspace</h2>
     <mat-dialog-content>
-      <p class="text-sm text-zinc-500 mb-3">Members of this workspace will be unable to sign into it until it's reactivated.</p>
+      <p class="text-sm text-ink-muted mb-3">Members of this workspace will be unable to sign into it until it's reactivated.</p>
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Reason</mat-label>
         <textarea matInput [formControl]="reason" rows="3" placeholder="e.g. Billing overdue"></textarea>
